@@ -1587,3 +1587,772 @@ Do not optimize for:
 Optimize for:
 
 > **the greatest credible, measurable, sustainable, and realizable positive impact.**
+
+
+
+
+Approach 2) 
+
+# SIH 2026 SOFTWARE PROBLEM INTELLIGENCE — EXECUTION DIRECTIVE
+
+You have access to the project's dataset containing the 172 SIH 2026 SOFTWARE problem statements in:
+
+data/sih_2026_172.csv
+data/sih_2026_172.json
+
+Your mission is NOT simply to generate a score.
+
+Your mission is:
+
+> Identify which SIH 2026 software problem statement is the strongest real-world and execution opportunity for us, using an evidence-driven, multi-stage research methodology.
+
+The ultimate output must identify:
+
+1. Top 10 real-world impact problems
+2. Top 10 solution opportunities
+3. Top 10 systemic-leverage problems
+4. Top 10 future-potential problems
+5. Top 10 SIH opportunities
+6. Overall Top 10
+7. Top 5 finalists
+8. Top 3 finalists
+9. #1 highest real-world impact
+10. #1 best SIH opportunity
+11. #1 strongest business opportunity
+12. Overall #1 recommendation
+
+===========================================================
+IMPORTANT: DO NOT EXECUTE THE OLD HEURISTIC PLAN
+===========================================================
+
+Do NOT use keyword counts as proof of:
+
+- population impact
+- severity
+- economic impact
+- systemic leverage
+- future importance
+- feasibility
+- scalability
+- opportunity
+
+Do NOT assign arbitrary weights simply because they appear reasonable.
+
+Do NOT train a neural network on only these 172 statements.
+
+Do NOT fabricate statistics, evidence, sources, users, market sizes, or impact numbers.
+
+Do NOT eliminate potentially strong problems merely because keyword-based heuristics give them a low score.
+
+The previous implementation plan was only a starting proposal.
+
+Replace the heuristic-heavy approach with the hybrid research architecture below.
+
+===========================================================
+HYBRID ARCHITECTURE
+===========================================================
+
+Use the appropriate method for each task:
+
+PYTHON
+-------
+Use Python for:
+
+- CSV/JSON validation
+- data cleaning
+- normalization
+- duplicate detection
+- embeddings
+- semantic similarity
+- clustering
+- numerical calculations
+- statistics
+- sensitivity analysis
+- ranking calculations
+- reproducibility
+- generating structured output files
+
+LLM
+---
+Use LLM reasoning for:
+
+- understanding the underlying problem
+- distinguishing problem vs symptom
+- identifying stakeholders
+- identifying root causes
+- extracting candidate factors
+- qualitative reasoning
+- systemic analysis
+- solution analysis
+- future analysis
+- contradiction generation
+- red-team analysis
+- final synthesis
+
+WEB RESEARCH
+------------
+Use reliable external sources for:
+
+- population estimates
+- prevalence
+- economic impact
+- research evidence
+- existing solutions
+- market information
+- government information
+- technical feasibility
+- future trends
+
+STATISTICS / ML
+---------------
+Use for:
+
+- factor relationships
+- correlation analysis
+- clustering
+- similarity
+- exploratory predictive analysis
+- sensitivity analysis
+
+Do NOT claim predictive superiority without appropriate labeled data.
+
+===========================================================
+CORE PRINCIPLE
+===========================================================
+
+Treat every proposed factor as a hypothesis.
+
+Do not assume the following factors are automatically correct:
+
+- population
+- severity
+- frequency
+- duration
+- economic burden
+- time burden
+- underserved population
+- existing solution weakness
+- growth
+- urgency
+- systemic leverage
+- future risk
+- feasibility
+- scalability
+- innovation
+- technology leverage
+
+For every important factor determine:
+
+1. Why it might matter
+2. Evidence supporting it
+3. Evidence contradicting it
+4. Whether it is measurable
+5. Whether it overlaps with another factor
+6. Whether it creates double counting
+7. Whether it is reliable
+8. Whether it appears useful for ranking problems
+
+Classify conclusions as:
+
+[FACT]
+[EVIDENCE-SUPPORTED]
+[HYPOTHESIS]
+[INFERENCE]
+[ESTIMATE]
+[UNCERTAIN]
+
+===========================================================
+IMPORTANT DISTINCTIONS
+===========================================================
+
+Never collapse these concepts:
+
+Problem Magnitude
+≠
+Problem Importance
+≠
+Opportunity
+≠
+Potential Impact
+≠
+Realizable Impact
+≠
+Actual Impact
+≠
+Solution Feasibility
+≠
+SIH Competitiveness
+
+Maintain them as separate dimensions.
+
+===========================================================
+PASS 0 — DATASET VALIDATION
+===========================================================
+
+Before any analysis:
+
+1. Load CSV.
+2. Load JSON.
+3. Count records.
+4. Count unique PS IDs.
+5. Check duplicate IDs.
+6. Compare CSV and JSON.
+7. Identify missing records.
+8. Identify mismatched fields.
+9. Verify all records belong to the SOFTWARE domain.
+10. Report all discrepancies.
+
+Do not modify source files.
+
+Create:
+
+research/00_dataset_validation.md
+
+===========================================================
+PASS 1 — NORMALIZATION
+===========================================================
+
+For every problem create a normalized record containing:
+
+- PS ID
+- original title
+- original problem statement
+- organization
+- department if available
+- theme
+- domain
+- underlying problem
+- target users
+- stakeholders
+- geography
+- root causes if known
+- symptoms
+- consequences
+- existing solution information
+- expected solution
+- technical requirements
+- constraints
+- unknown information
+
+Never overwrite the original statement.
+
+Create:
+
+research/01_normalized_problems.csv
+research/01_normalized_problems.json
+
+===========================================================
+PASS 2 — RELATIONSHIP / DUPLICATE ANALYSIS
+===========================================================
+
+Use:
+
+embeddings
+→ semantic similarity
+→ candidate pairs
+→ LLM verification
+
+Identify:
+
+- exact duplicates
+- semantic duplicates
+- same underlying problem
+- strongly related problems
+- complementary problems
+- independent problems
+
+Do NOT automatically delete related problems.
+
+Create:
+
+research/02_problem_relationships.csv
+
+===========================================================
+PASS 3 — FACTOR VALIDATION
+===========================================================
+
+Before ranking problems, investigate whether our candidate evaluation factors are actually meaningful.
+
+Candidate dimensions:
+
+A. SCALE
+- affected population
+- geographic reach
+
+B. INTENSITY
+- severity
+- frequency
+- duration
+
+C. BURDEN
+- economic burden
+- time burden
+- resource burden
+- human burden
+- environmental burden
+
+D. GAP
+- underserved population
+- unserved population
+- existing solution weakness
+- affordability
+- accessibility
+- adoption gap
+
+E. FUTURE
+- growth
+- urgency
+- future risk
+- technology change
+
+F. SYSTEMIC
+- root-cause position
+- dependencies
+- second-order effects
+- third-order effects
+- bottleneck potential
+- systemic leverage
+
+G. SOLUTION
+- feasibility
+- data availability
+- scalability
+- adoption
+- implementation complexity
+- technology leverage
+
+H. SIH
+- innovation
+- prototype feasibility
+- technical depth
+- demonstrability
+- differentiation
+- deployment realism
+
+Do NOT assign weights yet.
+
+Create:
+
+research/03_factor_validation.md
+
+===========================================================
+PASS 4 — EVIDENCE COLLECTION
+===========================================================
+
+For every problem collect evidence where meaningful.
+
+Research:
+
+- affected population
+- prevalence
+- severity
+- frequency
+- duration
+- economic burden
+- time burden
+- resource burden
+- existing solutions
+- solution effectiveness
+- solution gaps
+- underserved groups
+- growth
+- future importance
+- systemic consequences
+
+For every important quantitative claim record:
+
+Claim
+Source
+Source type
+Publication/date
+Relevant geography
+Evidence quality
+Potential bias
+Confidence
+
+Never fabricate evidence.
+
+If unavailable:
+
+UNKNOWN
+
+If estimated:
+
+ESTIMATE
+
+If sources disagree:
+
+record the disagreement.
+
+Create:
+
+research/04_evidence_database.csv
+
+===========================================================
+PASS 5 — PROBLEM DNA
+===========================================================
+
+Create a structured profile for every problem.
+
+Include:
+
+- impact dimensions
+- opportunity dimensions
+- future dimensions
+- systemic dimensions
+- solution dimensions
+- SIH dimensions
+- evidence quality
+- confidence
+- uncertainty
+- assumptions
+
+Create:
+
+research/05_problem_dna.csv
+
+===========================================================
+PASS 6 — FIRST SCREENING
+===========================================================
+
+Do NOT aggressively eliminate problems based on keywords.
+
+Use:
+
+- evidence quality
+- problem validity
+- duplicate/overlap status
+- impact signals
+- opportunity signals
+- feasibility signals
+
+Reduce the dataset gradually.
+
+Target approximately:
+
+172
+→ 100
+→ 50
+→ 30
+
+Do not force exact numbers.
+
+A strong problem must not be eliminated merely because its evidence is difficult to quantify.
+
+===========================================================
+PASS 7 — MULTI-DIMENSIONAL ANALYSIS
+===========================================================
+
+For each surviving problem evaluate separately:
+
+1. Real-world impact
+2. Problem magnitude
+3. Human impact
+4. Economic/resource impact
+5. Solution opportunity
+6. Systemic leverage
+7. Future potential
+8. Technical feasibility
+9. Scalability
+10. SIH competitiveness
+11. Evidence confidence
+
+Do not immediately collapse these into one score.
+
+Create separate rankings.
+
+===========================================================
+PASS 8 — SYSTEMIC + COUNTERFACTUAL ANALYSIS
+===========================================================
+
+For strong candidates analyze:
+
+Problem
+↓
+Root causes
+↓
+Direct consequences
+↓
+Second-order effects
+↓
+Third-order effects
+↓
+System-level effects
+
+Then compare:
+
+No intervention
+vs
+Weak intervention
+vs
+Successful intervention
+
+Do not claim precise causal effects without evidence.
+
+===========================================================
+PASS 9 — DEEP RESEARCH TOP 15
+===========================================================
+
+For the strongest approximately 15 candidates, perform deeper research.
+
+Investigate:
+
+- primary sources
+- government sources
+- academic research
+- industry evidence
+- existing solutions
+- competitors
+- technology feasibility
+- adoption barriers
+- data availability
+- regulatory issues
+- deployment constraints
+- scalability
+
+Do not merely repeat the initial analysis.
+
+===========================================================
+PASS 10 — SOLUTION OPPORTUNITY
+===========================================================
+
+For each finalist determine:
+
+- what already exists
+- what works
+- what doesn't work
+- why the gap remains
+- what software could change
+- whether AI/ML is actually useful
+- what data is required
+- deployment requirements
+- scalability
+- adoption
+- cost
+
+Do NOT reward AI/ML merely because it sounds advanced.
+
+===========================================================
+PASS 11 — SIH COMPETITIVENESS
+===========================================================
+
+Evaluate:
+
+- problem clarity
+- real-world relevance
+- innovation potential
+- technical depth
+- prototype feasibility
+- demonstrability
+- differentiation
+- scalability
+- deployment realism
+- measurable impact
+- ability to create a compelling demo
+- ability to explain the solution clearly
+
+Remember:
+
+The most important real-world problem is not necessarily the best SIH problem.
+
+===========================================================
+PASS 12 — RED TEAM
+===========================================================
+
+For every Top 10 candidate ask:
+
+WHY SHOULD WE NOT CHOOSE THIS?
+
+Attack:
+
+- evidence quality
+- population assumptions
+- severity assumptions
+- existing solutions
+- feasibility
+- adoption
+- data requirements
+- technical complexity
+- regulatory barriers
+- scalability
+- differentiation
+- systemic impact
+- future assumptions
+- business assumptions
+
+Every Top 10 candidate must have:
+
+"Why we might be wrong"
+
+===========================================================
+PASS 13 — FINAL COMPARISON
+===========================================================
+
+Create separate rankings:
+
+A. Top 10 — Real-World Impact
+B. Top 10 — Solution Opportunity
+C. Top 10 — Systemic Leverage
+D. Top 10 — Future Potential
+E. Top 10 — Technical Feasibility
+F. Top 10 — Scalability
+G. Top 10 — SIH Competitiveness
+H. Top 10 — Overall Opportunity
+
+===========================================================
+FINAL TOP 10
+===========================================================
+
+For every Top 10 problem provide:
+
+PS ID
+Title
+Organization
+Theme
+
+Real-world impact
+Solution opportunity
+Systemic leverage
+Future potential
+Technical feasibility
+Scalability
+SIH competitiveness
+Evidence confidence
+
+Then explain:
+
+Why it is Top 10
+Why it beats alternatives
+Strongest evidence
+Weakest assumption
+Existing solutions
+Unsolved gap
+Possible solution direction
+Second-order effects
+Biggest risks
+Why we might be wrong
+
+===========================================================
+FINAL TOP 5
+===========================================================
+
+Perform a deep comparison.
+
+Do not simply sort by total score.
+
+Explain trade-offs.
+
+===========================================================
+FINAL TOP 3
+===========================================================
+
+Identify:
+
+#1 Real-World Impact
+#1 Solution Opportunity
+#1 SIH Opportunity
+#1 Business Opportunity
+
+These may be different.
+
+===========================================================
+FINAL #1
+===========================================================
+
+Select ONE overall recommendation only after all analysis.
+
+Answer:
+
+"If I had to spend the next several months building ONE software solution from these 172 SIH 2026 problem statements, which problem should I choose and why is it better than every serious alternative?"
+
+Provide:
+
+Problem ID
+Problem
+Overall rank
+Real-world impact
+Solution opportunity
+Systemic leverage
+Future potential
+Feasibility
+Scalability
+SIH competitiveness
+Evidence confidence
+Why #1
+Why alternatives lost
+Existing solutions
+Unsolved gap
+Recommended solution direction
+Prototype direction
+Technical architecture direction
+Business potential
+SIH strategy
+Biggest risks
+Why we might be wrong
+What evidence could change the decision
+
+===========================================================
+OUTPUT FILES
+===========================================================
+
+Create:
+
+research/
+├── 00_dataset_validation.md
+├── 01_normalized_problems.csv
+├── 01_normalized_problems.json
+├── 02_problem_relationships.csv
+├── 03_factor_validation.md
+├── 04_evidence_database.csv
+├── 05_problem_dna.csv
+├── 06_initial_ranking.csv
+├── 07_top30_analysis.md
+├── 08_top15_deep_research.md
+├── 09_top10_analysis.md
+├── 10_red_team.md
+├── 11_top5_comparison.md
+├── 12_top3_finalists.md
+└── FINAL_RECOMMENDATION.md
+
+rankings/
+├── real_world_impact.csv
+├── opportunity.csv
+├── systemic_leverage.csv
+├── future_potential.csv
+├── feasibility.csv
+├── scalability.csv
+├── sih_competitiveness.csv
+└── overall_ranking.csv
+
+audit/
+├── sources.csv
+├── claims.csv
+├── assumptions.csv
+├── uncertainties.csv
+└── analysis_log.md
+
+===========================================================
+EXECUTION RULE
+===========================================================
+
+DO NOT execute the entire pipeline in one pass.
+
+Execute stage-by-stage.
+
+After each stage:
+
+1. Save outputs.
+2. Validate outputs.
+3. Report what was completed.
+4. Report uncertainties.
+5. Report errors.
+6. Report how many records remain.
+7. Do not silently continue if a major data problem exists.
+
+Start with PASS 0 ONLY.
+
+Do NOT rank any problem yet.
+
+Do NOT perform deep research yet.
+
+First verify the dataset.
