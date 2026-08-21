@@ -1,0 +1,196 @@
+PS_ID_1,PS_ID_2,Similarity_Score,Relationship_Type
+"}
+{step_index"":35","{""step_index"":37",1.0,exact duplicate
+"}
+{step_index"":35","}
+{step_index"":39",1.0,exact duplicate
+"}
+{step_index"":35","{""step_index"":38",1.0,exact duplicate
+"}
+{step_index"":35","{""step_index"":40",1.0,exact duplicate
+"}
+{step_index"":35","}
+{step_index"":41",1.0,exact duplicate
+"}
+{step_index"":35","}
+{step_index"":45",1.0,exact duplicate
+"}
+{step_index"":35","{""step_index"":42",1.0,exact duplicate
+"}
+{step_index"":35","}
+{step_index"":43",1.0,exact duplicate
+"}
+{step_index"":35","{""step_index"":44",1.0,exact duplicate
+"}
+{step_index"":35","}
+{step_index"":47",1.0,exact duplicate
+"}
+{step_index"":35","{""step_index"":46",1.0,exact duplicate
+"{""step_index"":37","}
+{step_index"":41",1.0,exact duplicate
+"{""step_index"":37","{""step_index"":40",1.0,exact duplicate
+"{""step_index"":37","{""step_index"":38",1.0,exact duplicate
+"{""step_index"":37","}
+{step_index"":39",1.0,exact duplicate
+"{""step_index"":37","}
+{step_index"":43",1.0,exact duplicate
+"{""step_index"":37","{""step_index"":42",1.0,exact duplicate
+"}
+{step_index"":39","{""step_index"":42",1.0,exact duplicate
+"{""step_index"":38","}
+{step_index"":45",1.0,exact duplicate
+"{""step_index"":38","}
+{step_index"":43",1.0,exact duplicate
+"{""step_index"":38","{""step_index"":44",1.0,exact duplicate
+"{""step_index"":38","}
+{step_index"":39",1.0,exact duplicate
+"{""step_index"":38","{""step_index"":40",1.0,exact duplicate
+"{""step_index"":38","}
+{step_index"":41",1.0,exact duplicate
+"{""step_index"":38","{""step_index"":42",1.0,exact duplicate
+"{""step_index"":37","}
+{step_index"":47",1.0,exact duplicate
+"{""step_index"":37","{""step_index"":46",1.0,exact duplicate
+"{""step_index"":37","}
+{step_index"":45",1.0,exact duplicate
+"{""step_index"":37","{""step_index"":44",1.0,exact duplicate
+"{""step_index"":46","}
+{step_index"":47",1.0,exact duplicate
+"{""step_index"":44","{""step_index"":46",1.0,exact duplicate
+"{""step_index"":44","}
+{step_index"":47",1.0,exact duplicate
+"}
+{step_index"":45","{""step_index"":46",1.0,exact duplicate
+"}
+{step_index"":45","}
+{step_index"":47",1.0,exact duplicate
+"}
+{step_index"":41","{""step_index"":46",1.0,exact duplicate
+"}
+{step_index"":41","}
+{step_index"":47",1.0,exact duplicate
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",1.0,exact duplicate
+"{""step_index"":42","}
+{step_index"":43",1.0,exact duplicate
+"csv_data = """"""PS ID","start_marker = ""PS ID",1.0,exact duplicate
+"{""step_index"":42","{""step_index"":44",1.0,exact duplicate
+"}
+{step_index"":43","}
+{step_index"":45",1.0,exact duplicate
+"}
+{step_index"":39","}
+{step_index"":41",1.0,exact duplicate
+"}
+{step_index"":39","{""step_index"":40",1.0,exact duplicate
+"{""step_index"":38","}
+{step_index"":47",1.0,exact duplicate
+"{""step_index"":38","{""step_index"":46",1.0,exact duplicate
+"}
+{step_index"":39","{""step_index"":46",1.0,exact duplicate
+"}
+{step_index"":39","}
+{step_index"":47",1.0,exact duplicate
+"{""step_index"":40","}
+{step_index"":41",1.0,exact duplicate
+"{""step_index"":40","{""step_index"":42",1.0,exact duplicate
+"{""step_index"":40","}
+{step_index"":43",1.0,exact duplicate
+"}
+{step_index"":39","}
+{step_index"":43",1.0,exact duplicate
+"}
+{step_index"":39","{""step_index"":44",1.0,exact duplicate
+"}
+{step_index"":39","}
+{step_index"":45",1.0,exact duplicate
+"{""step_index"":40","}
+{step_index"":45",1.0,exact duplicate
+"{""step_index"":40","{""step_index"":44",1.0,exact duplicate
+"{""step_index"":40","{""step_index"":46",1.0,exact duplicate
+"}
+{step_index"":41","}
+{step_index"":45",1.0,exact duplicate
+"}
+{step_index"":41","{""step_index"":44",1.0,exact duplicate
+"}
+{step_index"":41","}
+{step_index"":43",1.0,exact duplicate
+"}
+{step_index"":41","{""step_index"":42",1.0,exact duplicate
+"{""step_index"":40","}
+{step_index"":47",1.0,exact duplicate
+"}
+{step_index"":43","}
+{step_index"":47",1.0,exact duplicate
+"}
+{step_index"":43","{""step_index"":46",1.0,exact duplicate
+"{""step_index"":44","}
+{step_index"":45",1.0,exact duplicate
+"{""step_index"":42","}
+{step_index"":45",1.0,exact duplicate
+"}
+{step_index"":43","{""step_index"":44",1.0,exact duplicate
+"{""step_index"":42","}
+{step_index"":47",1.0,exact duplicate
+"{""step_index"":42","{""step_index"":46",1.0,exact duplicate
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.801,semantic duplicate
+"}
+{step_index"":36","}
+{step_index"":39",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":38",0.707,semantic duplicate
+"}
+{step_index"":35","}
+{step_index"":36",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":37",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":42",0.707,semantic duplicate
+"}
+{step_index"":36","}
+{step_index"":43",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":44",0.707,semantic duplicate
+"}
+{step_index"":36","}
+{step_index"":45",0.707,semantic duplicate
+"}
+{step_index"":36","}
+{step_index"":47",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":46",0.707,semantic duplicate
+"}
+{step_index"":36","{""step_index"":40",0.707,semantic duplicate
+"}
+{step_index"":36","}
+{step_index"":41",0.707,semantic duplicate
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.687,same underlying problem
+"""
+
+csv_file = r'c:\Users\Lenovo\Desktop\SIH\SIH_2026_PROBLEM_INTELLIGENCE\data\sih_2026_172.csv'
+with open(csv_file, 'w', encoding='utf-8') as f:
+    f.write(csv_data)
+print('Done saving chunk 1')
+'@ | python",",tool_calls"":[{""name"":""run_command""",0.661,same underlying problem
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.533,same underlying problem
+",tool_calls"":[{""name"":""run_command""","""
+
+csv_file = r'c:\Users\Lenovo\Desktop\SIH\SIH_2026_PROBLEM_INTELLIGENCE\data\sih_2026_172.csv'
+with open(csv_file, 'w', encoding='utf-8') as f:
+    f.write(csv_data)
+print('Done saving chunk 1')
+'@ | python",0.531,same underlying problem
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.467,strongly related problems
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.467,strongly related problems
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.441,strongly related problems
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.441,strongly related problems
+SIH26002,SIH26003,0.435,strongly related problems
+"""
+
+csv_file = r'c:\Users\Lenovo\Desktop\SIH\SIH_2026_PROBLEM_INTELLIGENCE\data\sih_2026_172.csv'
+with open(csv_file, 'w', encoding='utf-8') as f:
+    f.write(csv_data)
+print('Done saving chunk 1')
+'@ | python",",tool_calls"":[{""name"":""run_command""",0.43,strongly related problems
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.378,complementary problems
+",tool_calls"":[{""name"":""run_command""",",tool_calls"":[{""name"":""run_command""",0.378,complementary problems
