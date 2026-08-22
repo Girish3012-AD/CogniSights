@@ -3,7 +3,9 @@
 Problem Statement ID: 26032
 
 Organization: Ministry of Consumer Affairs, Food & Public Distribution
+
 Problem Statement Title: Farmers often face long waiting times, lack of information regarding procurement schedules, and uncertainty about procurement status.
+
 Department: Department of Consumer Affairs (DoCA)
 
 Category: Software
