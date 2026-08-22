@@ -9,7 +9,7 @@ Category: Software
 
 Theme: Heritage & Culture
 
-3. Problem Statement
+2. Problem Statement
 Farmers visiting procurement centres may face long waiting times, overcrowding and lack of information about their procurement schedule, queue position, procurement status and payment status.
 The problem is to provide farmers with a digital system for efficient procurement-centre management.
 
