@@ -22,13 +22,11 @@ Employer expectations
 Changing productivity standards
 
 Because of this, training curricula, equipment, trainer capabilities and assessment methods can become outdated.
-
 At the same time, employers may struggle to find job-ready candidates, while students may complete courses that have limited employment opportunities.
 
 3. Actual Problem
 
 The central problem is:
-
 There is a gap between the skills provided by training programs and the skills actually required by industries.
 
 This creates:
@@ -40,12 +38,11 @@ Shortage of job-ready candidates
 Employer dissatisfaction
 Poor utilization of training resources
 Difficulty predicting future skill requirements
+
 4. Main Objective
 
 The objective is to create a continuous, evidence-based mechanism that connects:
-
 Industry Demand → Skills → Training → Candidates → Employment
-
 The system should continuously identify what industries need and ensure that training programs adapt accordingly.
 
 5. Proposed Solution
@@ -53,7 +50,6 @@ The system should continuously identify what industries need and ensure that tra
 The proposed solution is an AI-powered Skill and Labour Market Intelligence Platform.
 
 It will collect and analyze information from:
-
 Job postings
 Employers
 Industry consultations
@@ -61,13 +57,11 @@ Sector growth
 Placement outcomes
 Emerging technologies
 Existing training programs
-
 It will then identify skill gaps and recommend changes to training programs.
 
 6. Labour Market Intelligence
 
 The system analyzes the labour market to identify:
-
 Most demanded job roles
 Most demanded skills
 Emerging skills
@@ -75,14 +69,12 @@ Declining skills
 Industry-wise demand
 Location-wise demand
 Required proficiency levels
+
 7. Skill Gap Analysis
 
 The system compares industry-required skills with skills taught in existing courses.
-
 For example:
-
 Industry requires:
-
 Python
 SQL
 Statistics
@@ -90,13 +82,11 @@ Power BI
 Excel
 
 Existing course provides:
-
 Python
 Basic SQL
 Excel
 
 The system identifies the missing skills:
-
 Advanced SQL
 Statistics
 Power BI
@@ -105,34 +95,27 @@ Power BI
 After identifying the skill gap, the system can recommend curriculum changes.
 
 It can identify:
-
 Missing subjects
 Outdated topics
 Emerging technologies
 Skills that need more practical training
 Courses that need revision
-9. Outdated Course Detection
 
+9. Outdated Course Detection
 The system can identify courses whose content no longer matches current industry demand.
 
 For example:
-
 Course → Old technology → Low industry demand
-
 The system can flag the course for review or curriculum modification.
 
 10. Oversupplied Course Detection
-
 The system can identify training programs where:
-
 Number of trained candidates > Available employment opportunities
-
 This can help authorities avoid investing too many resources in courses with low employment potential.
 
 11. Employer Feedback
 
 Employers can provide information about:
-
 Required skills
 Job roles
 Candidate quality
@@ -144,19 +127,13 @@ Emerging technologies
 This creates a direct connection between industry and training institutions.
 
 12. District-Level Skill Planning
-
 The system can identify skill requirements for different districts or regions.
-
 For example:
-
 District A
-
 High demand → Data Analytics
-
 Recommendation: Increase Data Analytics training.
 
 Another district may have high demand for:
-
 EV technology
 Cloud computing
 Manufacturing
@@ -167,7 +144,6 @@ The training programs can then be planned according to local employment demand.
 13. Candidate Career Guidance
 
 Students/trainees can enter:
-
 Current skills
 Education
 Target job
@@ -177,39 +153,29 @@ Career interests
 The system identifies their skill gaps and recommends suitable training.
 
 Example:
-
 Target: Data Analyst
-
 Current Skills:
-
 Python
 Basic SQL
-
 Missing Skills:
-
 Advanced SQL
 Statistics
 Power BI
 
 Recommended Training:
-
 Advanced SQL
 Statistics
 Power BI
+
 14. Trainer Development
-
 The system can identify where trainers need additional training.
-
 For example, if industry demand shifts toward:
-
 AI + Cloud + Data Engineering
-
 but trainers have limited knowledge of these technologies, the system can recommend trainer-development programs.
 
 15. Equipment and Training Capacity Planning
 
 The system can help authorities determine:
-
 Number of training seats required
 Required trainers
 Laboratory requirements
@@ -217,12 +183,11 @@ Equipment requirements
 New courses required
 Courses that should be expanded
 Courses that should be reduced
+
 16. AI/ML Components
 
 The system can use Natural Language Processing (NLP) to analyze job descriptions and industry information.
-
 Possible techniques include:
-
 Keyword extraction
 Named Entity Recognition
 Text classification
