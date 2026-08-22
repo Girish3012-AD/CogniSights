@@ -83,3 +83,73 @@ Crop health directly affects farmer income and food production. Early interventi
 13. One-Line Explanation for Judges
 
 “Our solution uses AI, crop images, weather and field information to detect crop diseases and pest risks early, enabling farmers and agricultural authorities to take timely preventive action.”
+For Problem Statement 26131 (Early Detection and Management of Crop Diseases & Pest Infestations), these technologies are suitable:
+
+1. Frontend
+React.js – Web dashboard
+Tailwind CSS – UI design
+JavaScript – Frontend logic
+2. Backend
+Python
+FastAPI – AI/ML API backend
+REST API – Communication between frontend and AI models
+3. AI / Machine Learning
+Python
+PyTorch / TensorFlow – Deep learning
+Scikit-learn – ML models
+XGBoost – Disease/pest risk prediction
+4. Computer Vision 🌱
+
+For detecting diseases from crop images:
+
+OpenCV – Image preprocessing
+CNN – Image classification
+ResNet / EfficientNet / MobileNet – Transfer learning
+5. Weather & Risk Prediction 🌦️
+
+Use:
+
+Temperature
+Humidity
+Rainfall
+Wind
+Crop growth stage
+
+Models such as XGBoost / Random Forest can predict disease or pest risk.
+
+6. Database
+MySQL / PostgreSQL
+Store:
+Farmer information
+Crop information
+Disease predictions
+Pest observations
+Weather data
+Location
+Historical records
+7. GIS / Maps 📍
+Leaflet.js
+OpenStreetMap
+PostGIS (if PostgreSQL is used)
+
+Used for showing disease/pest hotspots and high-risk areas.
+
+8. Explainable AI
+SHAP – Explain risk-prediction models
+Grad-CAM – Show which part of the crop image influenced the CNN prediction
+9. Mobile Application — Optional
+React Native or Flutter
+
+Useful because farmers can directly capture/upload crop images from a phone.
+
+⭐ Recommended SIH Tech Stack
+
+React.js + Tailwind CSS → FastAPI + Python → PyTorch/TensorFlow + XGBoost → MySQL → Leaflet/OpenStreetMap
+
+The strongest architecture would be:
+
+Crop Image → CNN → Disease Detection
+
+Weather + Crop + Soil + Pest History → XGBoost → Risk Prediction
+
+Both Results → AI Decision Engine → Farmer Alert + Advisory + GIS Risk Map
