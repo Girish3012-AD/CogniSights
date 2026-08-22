@@ -153,3 +153,6 @@ Crop Image → CNN → Disease Detection
 Weather + Crop + Soil + Pest History → XGBoost → Risk Prediction
 
 Both Results → AI Decision Engine → Farmer Alert + Advisory + GIS Risk Map
+
+
+Why this topic matters in 2026: Climate variability is increasing agricultural risk, while India is already using AI, satellite imagery, drones and image analytics for early pest and disease detection—so 26131 is highly relevant now because early AI-based detection can help farmers act before crop damage becomes widespread
