@@ -1,10 +1,10 @@
-1. Problem Statement Details
 Problem Statement ID: 26134
 Title: Challenges in aligning skill development programs with industry requirements and emerging job market demands
 Organization: Government of Maharashtra
 Department: Department of Skills, Employment, Entrepreneurship and Innovation
 Category: Software
 Theme: Miscellaneous
+
 2. Problem Statement
 
 Skill-development programs are often based on broad or historical occupation categories. These programs may not keep up with:
