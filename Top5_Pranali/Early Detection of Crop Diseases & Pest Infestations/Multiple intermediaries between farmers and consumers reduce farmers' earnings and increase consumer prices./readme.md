@@ -1,9 +1,19 @@
 26033 — Agricultural Supply Chain
-1. Problem Statement
-
+1. Problem Statement Details
+   
 Problem Statement ID: 26033
 
-Title: Multiple intermediaries reduce farmers' earnings and increase consumer prices.
+Problem Statement Title: Multiple intermediaries reduce farmers' earnings and increase consumer prices.
+
+Organization: Government of Maharashtra
+
+Department: Department of Agriculture, Government of Maharashtra
+
+Category: Software
+
+Theme: Agriculture, FoodTech & Rural Development
+
+1. Problem Statement
 
 The agricultural supply chain often involves multiple intermediaries between farmers and final consumers. A farmer may sell produce to a local trader, who may sell it to another wholesaler, distributor or retailer before it finally reaches the consumer.
 
