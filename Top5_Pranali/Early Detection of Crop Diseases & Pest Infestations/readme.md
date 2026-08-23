@@ -1,4 +1,4 @@
-26131 — Early Detection of Crop Diseases & Pest Infestations
+26131 — Early Detection of Crop Diseases_Pest Infestations
 1. Problem Statement Details
 Problem Statement ID: 26131
 Title: Early detection and management of crop diseases and pest infestations
