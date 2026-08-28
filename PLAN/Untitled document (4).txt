@@ -1,0 +1,599 @@
+﻿Yes. If the objective is “do not miss any serious model that could influence SatQuery’s architecture”, we should not make a tiny Top-10 list. The landscape spans RS-VLMs, EO foundation models, grounding, segmentation, temporal models, multimodal sensor models, geospatial foundation models, and reasoning/agentic systems.
+I cross-checked current 2026 landscape sources and benchmarks. VRSBench alone compares several generations of RS-VLMs, while newer 2026 evaluations now include models such as Earth-OneVision, RSThinker, EarthDial and SkySenseGPT.
+🛰️ Complete SatQuery Model Universe
+I would organize the models into 10 capability families rather than pretending that one leaderboard can tell us which model is "best."
+________________
+
+
+🥇 Tier 1 — Models we MUST deeply study
+These are the ones most likely to influence the eventual SatQuery core.
+Model
+	Main superpower
+	SatQuery importance
+	Earth-OneVision
+	Broad multimodal RS-MLLM + many sensors/tasks
+	⭐⭐⭐⭐⭐
+	RemoteReasoner
+	Unified geospatial reasoning/workflow
+	⭐⭐⭐⭐⭐
+	TerraMind
+	Any-to-any multimodal Earth reasoning
+	⭐⭐⭐⭐⭐
+	SkySense V2
+	Unified multimodal EO foundation model
+	⭐⭐⭐⭐⭐
+	SkySense++
+	Large-scale multimodal/few-shot EO representation
+	⭐⭐⭐⭐⭐
+	MIGRANT
+	Multi-image grounding/reasoning
+	⭐⭐⭐⭐⭐
+	GeoGround
+	Grounding + HBB/OBB/masks
+	⭐⭐⭐⭐⭐
+	Think2Seg-RS
+	VLM reasoning → segmentation
+	⭐⭐⭐⭐⭐
+	VHM
+	Honest/versatile RS-VLM
+	⭐⭐⭐⭐⭐
+	EarthGPT / EarthGPT-X
+	Optical + SAR + IR multimodal understanding
+	⭐⭐⭐⭐⭐
+	SkyEyeGPT
+	Broad RS instruction-following
+	⭐⭐⭐⭐
+	GeoChat
+	Grounded RS conversation
+	⭐⭐⭐⭐
+	LHRS-Bot
+	RS + geographic/VGI knowledge
+	⭐⭐⭐⭐
+	SATGround
+	Advanced spatial grounding
+	⭐⭐⭐⭐
+	Prithvi-EO-2.0
+	Temporal + multispectral EO foundation model
+	⭐⭐⭐⭐⭐
+	AlphaEarth Foundations
+	Massive-scale Earth embeddings
+	⭐⭐⭐⭐⭐
+	________________
+
+
+🧠 1. General RS Vision-Language Models
+These answer:
+"Can I talk to a satellite image intelligently?"
+Core models
+1. GeoChat
+2. SkyEyeGPT
+3. EarthGPT
+4. EarthGPT-X
+5. VHM
+6. LHRS-Bot
+7. RSGPT
+8. SkySenseGPT
+9. GeoLLaVA
+10. GeoLLaVA-8K
+11. EarthDial
+12. GeoPix
+13. RS-LLaVA
+14. Remote Sensing ChatGPT
+15. RemoteGPT
+16. GeoChat-2 / later GeoChat variants where applicable
+17. Earth-OneVision
+18. RSThinker
+19. GeoVLM-R1
+20. RemoteReasoner
+The broader EO-VLM ecosystem includes these families and explicitly separates foundation models, captioning, retrieval, grounding and VQA systems.
+What they collectively give SatQuery
+* image understanding
+* VQA
+* captioning
+* object recognition
+* counting
+* spatial relations
+* conversation
+* instruction following
+* grounding
+* increasingly multimodal reasoning.
+________________
+
+
+🎯 2. Visual Grounding / Localization Models
+This family answers:
+"WHERE exactly is the thing you're talking about?"
+Must study
+1. GeoGround
+2. SATGround
+3. SkyEyeGPT
+4. GeoChat
+5. EarthGPT
+6. LHRS-Bot
+7. Earth-OneVision
+8. RSThinker
+9. RemoteReasoner
+10. RSVG-specific specialist models
+11. DIOR-RSVG models
+12. SkySenseGPT
+13. GeoPix
+14. Grounding DINO adaptations for RS
+15. SAM/SAM2-based RS grounding pipelines
+This area is changing quickly: a current RSVG leaderboard lists a specialist at 84.48 P@0.5, while Earth-OneVision is at 65.06 and RSThinker at 64.0, illustrating why a general-purpose VLM and a specialized grounding model should not be treated as the same thing.
+SatQuery lesson
+Potential outputs:
+object
+→ bounding box
+→ oriented bounding box
+→ polygon
+→ coordinates
+→ confidence
+________________
+
+
+🟣 3. Segmentation / Pixel-Level Intelligence
+These answer:
+"Which exact pixels belong to this object/region?"
+Important systems
+1. Think2Seg-RS
+2. GeoGround
+3. GeoPix
+4. Popeye
+5. SAM
+6. SAM 2
+7. Grounded-SAM
+8. Grounding DINO + SAM
+9. Remote-SAM
+10. RS-SAM adaptations
+11. Prithvi-based segmentation systems
+12. SatMAE-based segmentation
+13. DOFA-based segmentation
+14. Clay-based segmentation
+15. RemoteReasoner
+16. TerraMind task adapters
+The 2026 segmentation literature now broadly clusters around Transformer models, Mamba/state-space models, prompt-driven SAM-style systems, and multimodal/self-supervised foundation models.
+SatQuery lesson
+Don't make the language model predict masks itself.
+Better:
+Language reasoning
+        ↓
+"find all damaged buildings"
+        ↓
+Grounding
+        ↓
+SAM / segmentation specialist
+        ↓
+pixel masks
+________________
+
+
+🌍 4. Earth Observation Foundation Models
+These don't primarily "chat."
+Their superpower is:
+learning representations of Earth.
+Critical models
+1. Prithvi-EO
+2. Prithvi-EO-2.0
+3. SatMAE
+4. SatMAE++
+5. SatlasPretrain
+6. Scale-MAE
+7. MAE-Geo
+8. DOFA
+9. Clay
+10. Clay Foundation Model
+11. SkySense
+12. SkySense++
+13. SkySense V2
+14. TerraMind
+15. AlphaEarth Foundations
+16. RemoteCLIP
+17. GeoRSCLIP
+18. CSP / cross-sensor pretraining families
+19. RingMo
+20. GFM / geospatial foundation model families
+21. Tessera
+22. SatVision
+23. SSL4EO-type foundation models
+A recent 2026 review of geospatial foundation models specifically discusses families such as SatMAE, Scale-MAE, Prithvi, Clay, Tessera and DOFA, so these shouldn't be ignored just because they aren't conversational models.
+________________
+
+
+🛰️ 5. Multisensor / Multimodal Earth Models
+This is probably one of the most important groups for your ultimate architecture.
+Models
+1. EarthGPT
+2. EarthGPT-X
+3. TerraMind
+4. SkySense
+5. SkySense++
+6. SkySense V2
+7. Earth-OneVision
+8. Prithvi-EO-2.0
+9. DOFA
+10. Clay
+11. SatlasPretrain
+12. AlphaEarth Foundations
+13. CROMA
+14. RemoteCLIP
+15. GeoRSCLIP
+16. RingMo
+17. SSL4EO
+18. AnySat
+19. M3FM / multimodal geospatial foundation-model families
+Sensor combinations to investigate
+RGB
++
+Multispectral
++
+SAR
++
+Infrared
++
+Temporal imagery
++
+DEM
++
+Geographic coordinates
++
+Maps
+TerraMind is particularly important because its architecture explicitly targets multiple geospatial modalities and any-to-any generation, rather than simply concatenating RGB and SAR features.
+________________
+
+
+⏳ 6. Temporal / Multi-Image Intelligence
+This category is absolutely essential for a serious SatQuery.
+The question changes from:
+"What is here?"
+to:
+"What changed here?"
+Models / systems
+1. MIGRANT
+2. Prithvi-EO
+3. Prithvi-EO-2.0
+4. SkySense
+5. SkySense++
+6. SkySense V2
+7. TerraMind
+8. AlphaEarth Foundations
+9. SatMAE
+10. SatMAE++
+11. AnySat
+12. ChangeStar
+13. BIT
+14. ChangeFormer
+15. Siamese/Transformer change-detection families
+16. RemoteReasoner
+17. Earth-OneVision
+18. RSThinker
+Potential SatQuery abilities
+2023 image
+      +
+2024 image
+      +
+2025 image
+      ↓
+Temporal reasoning
+      ↓
+"Which buildings appeared?"
+or:
+"Which agricultural fields changed?"
+or:
+"Show the progression of the flood."
+________________
+
+
+🔬 7. Retrieval / Vision-Language Representation Models
+These are easy to overlook, but potentially extremely valuable.
+They answer:
+"Which satellite images are semantically similar to this query?"
+Important models
+1. RemoteCLIP
+2. GeoRSCLIP
+3. RS5M
+4. RS-CLIP variants
+5. CROMA
+6. SatCLIP
+7. GeoCLIP
+8. SkyCLIP
+9. EarthCLIP-type models
+10. Prithvi representations
+11. AlphaEarth embeddings
+12. TerraMind embeddings
+SatQuery possibility
+User:
+"Find satellite images showing dense industrial development near rivers."
+System:
+text query
+ ↓
+embedding
+ ↓
+geospatial retrieval
+ ↓
+candidate regions
+ ↓
+VLM analysis
+That is a much more powerful product than simple image upload.
+________________
+
+
+🗺️ 8. Geospatial / Geographic Foundation Models
+These models are not necessarily RS-VLMs.
+But they matter because Earth is geographic, not merely visual.
+Models/families to study
+1. AlphaEarth Foundations
+2. GeoCLIP
+3. SatCLIP
+4. GeoRSCLIP
+5. RemoteCLIP
+6. Clay
+7. Prithvi
+8. DOFA
+9. Tessera
+10. SatlasPretrain
+11. AnySat
+12. CROMA
+13. RingMo
+14. Scale-MAE
+15. SatMAE
+16. SSL4EO
+17. GFM families
+18. LHRS-Bot
+19. GeoChat + geographic context
+20. Earth Engine / geospatial embedding ecosystems
+Why this matters
+A future SatQuery could reason about:
+location + imagery + geographic context
+rather than merely:
+pixels.
+________________
+
+
+🤖 9. Reasoning / Agentic RS Models
+This is probably the most strategically important category.
+Study these deeply
+1. RemoteReasoner
+2. RSThinker
+3. GeoVLM-R1
+4. Earth-OneVision
+5. MIGRANT
+6. Think2Seg-RS
+7. TerraMind
+8. EarthDial
+9. GeoGround
+10. SATGround
+11. VLM-R1-type approaches
+12. RL-trained geospatial VLMs
+13. Tool-augmented RS-VLM systems
+14. Active-perception RS-VLMs
+A current 2026 RS-VQA comparison already shows newer general models such as GeoLLaVA-8K, ZoomEarth, SkySenseGPT, GeoVLM-R1 and EarthDial alongside general-purpose models, demonstrating that the field is moving well beyond the original GeoChat generation.
+________________
+
+
+🧠 10. Active Perception / "LOOK AGAIN" Models
+This is a newer direction that I would definitely investigate for SatQuery.
+Instead of:
+image
+ ↓
+answer
+the model can decide:
+image
+ ↓
+"I need more detail."
+ ↓
+crop / zoom / inspect region
+ ↓
+reason again
+ ↓
+answer
+Relevant technologies
+1. Crop-tool augmented RS-VQA
+2. Active perception RS systems
+3. ZoomEarth
+4. high-resolution VLM pipelines
+5. SAM/SAM2 interactive perception
+6. Grounding DINO
+7. RemoteReasoner
+8. RSThinker
+9. VLM-R1 reasoning systems
+This matters because satellite images frequently contain tiny objects inside huge scenes. A recent 2026 study explicitly explores crop-tool-augmented active perception for high-resolution RS VQA.
+________________
+
+
+🏆 THE MASTER SHORTLIST
+If I were building your SatQuery research database, I would put these into the first wave.
+🔴 Priority A — Deep reverse-engineering
+RS-VLM / MLLM
+1. Earth-OneVision
+2. RemoteReasoner
+3. TerraMind
+4. EarthGPT
+5. EarthGPT-X
+6. SkyEyeGPT
+7. VHM
+8. GeoChat
+9. LHRS-Bot
+10. SkySenseGPT
+11. GeoLLaVA-8K
+12. EarthDial
+13. RSThinker
+14. GeoVLM-R1
+Grounding
+15. GeoGround
+16. SATGround
+17. SkyEyeGPT grounding
+18. Earth-OneVision grounding
+19. RSVG specialist SOTA models
+Segmentation
+20. Think2Seg-RS
+21. GeoGround
+22. Popeye
+23. GeoPix
+24. Grounded-SAM
+25. SAM 2 RS pipelines
+EO Foundation Models
+26. SkySense
+27. SkySense++
+28. SkySense V2
+29. Prithvi-EO
+30. Prithvi-EO-2.0
+31. TerraMind
+32. AlphaEarth Foundations
+33. DOFA
+34. Clay
+35. SatlasPretrain
+36. SatMAE
+37. Scale-MAE
+38. Tessera
+39. AnySat
+40. CROMA
+41. RingMo
+42. SSL4EO
+Retrieval / CLIP
+43. RemoteCLIP
+44. GeoRSCLIP
+45. SatCLIP
+46. GeoCLIP
+47. SkyCLIP
+Temporal / multi-image
+48. MIGRANT
+49. Prithvi-EO-2.0
+50. SkySense++
+51. SkySense V2
+52. ChangeFormer
+53. ChangeStar
+54. BIT
+55. AnySat
+56. TerraMind temporal capabilities
+________________
+
+
+🥇 If we rank by "what SatQuery can learn"
+This is more useful than ranking by raw benchmark score.
+Rank
+	Model
+	What we should steal/learn
+	🥇
+	RemoteReasoner
+	Autonomous geospatial reasoning
+	🥈
+	Earth-OneVision
+	Broad multimodal RS intelligence
+	🥉
+	TerraMind
+	Cross-modal Earth reasoning
+	4
+	SkySense V2
+	Unified multimodal backbone
+	5
+	SkySense++
+	Generalization/few-shot EO
+	6
+	MIGRANT
+	Multi-image reasoning
+	7
+	GeoGround
+	Precise spatial grounding
+	8
+	Think2Seg-RS
+	Reasoning → segmentation
+	9
+	VHM
+	Honesty / negative evidence
+	10
+	EarthGPT-X
+	Sensor fusion
+	11
+	Prithvi-EO-2.0
+	Temporal + multispectral representation
+	12
+	AlphaEarth
+	Planet-scale embeddings
+	13
+	SATGround
+	Structured spatial localization
+	14
+	LHRS-Bot
+	Geographic knowledge integration
+	15
+	SkyEyeGPT
+	Multitask instruction tuning
+	16
+	GeoChat
+	Conversational grounding
+	17
+	RemoteCLIP
+	RS text-image retrieval
+	18
+	DOFA
+	Flexible multispectral representation
+	19
+	Clay
+	General EO foundation representation
+	20
+	SatlasPretrain
+	Large-scale EO pretraining
+	________________
+
+
+⚠️ One VERY important distinction
+Don't conclude:
+Earth-OneVision = best model, therefore use Earth-OneVision.
+That's not the correct engineering conclusion.
+For example, current benchmark evidence shows that general RS-MLLMs can be beaten by specialists on individual capabilities. On the RSVG benchmark, a specialist reaches 84.48 P@0.5 while Earth-OneVision is 65.06; meanwhile on VRSBench, older models such as GeoChat remain competitive on some individual tasks.
+So our eventual architecture may look more like:
+                   USER
+                      │
+                      ▼
+              SATQUERY REASONER
+                      │
+          ┌───────────┼───────────┐
+          │           │           │
+          ▼           ▼           ▼
+      RS-VLM      GEO ENGINE    RETRIEVAL
+          │           │           │
+          ▼           ▼           ▼
+     Earth-       GIS /       AlphaEarth /
+     OneVision    Spatial     RemoteCLIP
+          │
+          ├───────────────┐
+          ▼               ▼
+      Grounding       Temporal
+      GeoGround       MIGRANT
+          │               │
+          ▼               ▼
+       SAM 2          Prithvi /
+                     SkySense
+          │               │
+          └───────┬───────┘
+                  ▼
+             EVIDENCE
+                  │
+                  ▼
+             FINAL ANSWER
+This is not the final SatQuery architecture. It is the kind of architecture we should evaluate after the model autopsy.
+________________
+
+
+🚨 And I would add 5 capabilities to our research checklist
+These weren't emphasized enough in your original list, but they could become major differentiators:
+1. 🔎 Active perception
+"I will zoom/crop and inspect before answering."
+2. 🕒 Temporal intelligence
+"I understand what changed, not just what exists."
+3. 🧮 Geospatial computation
+"I can calculate area, distance, proximity, intersection, density, etc."
+4. 🧾 Evidence + uncertainty
+"Here is what I observed, where I observed it, how confident I am, and what I cannot establish."
+5. 🤖 Autonomous tool selection
+"I decide whether this question needs VLM, grounding, segmentation, temporal analysis, GIS, retrieval, or another specialist."
+That fifth one is especially important because it turns SatQuery from a model into a system.
+________________
+
+
+🎯 The next thing we should do
+Don't jump to architecture yet.
+The correct next deliverable is a massive Model-by-Model Autopsy Matrix containing roughly 50 serious models/systems with columns for:
+Parameters → architecture → backbone → modalities → image resolution → temporal support → VQA → captioning → counting → grounding → HBB → OBB → polygon → segmentation → change detection → SAR → multispectral → IR → video → multi-image → GIS → geographic context → reasoning → agentic behavior → hallucination handling → active perception → datasets → training size → benchmark scores → GPU/compute → inference requirements → open-source status → license → checkpoint availability → strengths → weaknesses → unique innovation → SatQuery usefulness.
+That will give us the actual evidence base from which we can derive SatQuery's capabilities, instead of guessing features.
+And importantly, we should include both generalists and specialists—because the current evidence clearly shows that a general RS-VLM can be excellent overall while a specialist can still dominate a particular capability.
