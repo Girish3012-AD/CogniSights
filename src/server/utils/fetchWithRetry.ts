@@ -20,7 +20,15 @@ export interface TelemetryEvent {
   finalAttempt?: boolean;
 }
 
+const MAX_TELEMETRY_ENTRIES = 500;
 export const telemetryLogs: TelemetryEvent[] = [];
+
+function pushTelemetry(event: TelemetryEvent): void {
+  telemetryLogs.push(event);
+  if (telemetryLogs.length > MAX_TELEMETRY_ENTRIES) {
+    telemetryLogs.splice(0, telemetryLogs.length - MAX_TELEMETRY_ENTRIES);
+  }
+}
 
 export async function fetchWithRetry(url: string | URL | Request, options: RequestInit = {}, config: FetchRetryConfig = {}): Promise<Response> {
   const {
@@ -57,7 +65,7 @@ export async function fetchWithRetry(url: string | URL | Request, options: Reque
       const isRateLimit = status === 429;
 
       if (response.ok) {
-        telemetryLogs.push({
+        pushTelemetry({
           provider: providerName,
           operation: operationName,
           attempt,
@@ -71,7 +79,7 @@ export async function fetchWithRetry(url: string | URL | Request, options: Reque
       }
 
       if (isTransient && !isFinalAttempt) {
-        telemetryLogs.push({
+        pushTelemetry({
           provider: providerName,
           operation: operationName,
           attempt,
@@ -98,7 +106,7 @@ export async function fetchWithRetry(url: string | URL | Request, options: Reque
         continue;
       }
 
-      telemetryLogs.push({
+      pushTelemetry({
         provider: providerName,
         operation: operationName,
         attempt,
@@ -117,7 +125,7 @@ export async function fetchWithRetry(url: string | URL | Request, options: Reque
       const durationMs = Date.now() - startTime;
       const isAbort = err.name === 'AbortError' || err.message?.includes('timeout') || err.message?.includes('fetch failed');
       
-      telemetryLogs.push({
+      pushTelemetry({
         provider: providerName,
         operation: operationName,
         attempt,

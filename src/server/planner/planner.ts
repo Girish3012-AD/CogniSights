@@ -105,14 +105,21 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
   let bufferId: string | null = null;
   if (query.spatialConstraint?.distance && query.spatialConstraint?.relation) {
     bufferId = `step_${currentOrder++}_buffer`;
+    // Buffer the reference feature if one was found; otherwise buffer the AOI itself.
+    const bufferDep = referenceDatasetId ?? aoiId;
+    // Infer units from the relation string (e.g. "within 500 meters" → "meters")
+    const relationStr = String(query.spatialConstraint.relation).toLowerCase();
+    const bufferUnits = (relationStr.includes("meter") || relationStr.includes(" m ")) ? "meters"
+      : (relationStr.includes("kilometer") || relationStr.includes(" km")) ? "kilometers"
+      : "meters"; // default to meters for safety (prevents 500 being treated as 500km)
     steps.push({
       id: bufferId,
       order: currentOrder - 1,
       toolName: "spatialBuffer",
       operation: "buffer",
       description: `Create a ${query.spatialConstraint.distance} ${query.spatialConstraint.relation} buffer.`,
-      input: { distance: query.spatialConstraint.distance, relation: query.spatialConstraint.relation },
-      dependsOn: referenceDatasetId ? [referenceDatasetId] : [],
+      input: { distance: query.spatialConstraint.distance, units: bufferUnits, relation: query.spatialConstraint.relation },
+      dependsOn: bufferDep ? [bufferDep] : [],
       status: "PENDING"
     });
   }
