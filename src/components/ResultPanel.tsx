@@ -1,9 +1,145 @@
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { AnalysisResult } from "../types/index.js";
 
 interface ResultPanelProps {
   result: AnalysisResult | null;
   isLoading: boolean;
+}
+
+function handleExportPDF(result: AnalysisResult) {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert("Please allow popups to export PDF.");
+    return;
+  }
+
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>CogniSights Executive Intelligence Report - ${dateStr}</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1e293b; margin: 0; padding: 24px; font-size: 13px; line-height: 1.5; }
+          .header { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .title { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+          .subtitle { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+          .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+          .badge-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+          .badge-partial { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+          .badge-failed { background: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+          .section { margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; page-break-inside: avoid; }
+          .section-title { font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+          .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .field { margin-bottom: 6px; }
+          .field-label { font-weight: 700; color: #64748b; font-size: 11px; }
+          .field-val { color: #0f172a; font-weight: 500; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+          th { background: #f8fafc; color: #475569; font-weight: 700; text-align: left; padding: 8px; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; }
+          td { padding: 8px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+          .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <h1 class="title">CogniSights Executive Intelligence Report</h1>
+            <div class="subtitle">Geospatial Intelligence & Remote Sensing Evidence Audit</div>
+          </div>
+          <div>
+            <span class="badge ${result.overallStatus === 'SUCCESS' ? 'badge-success' : result.overallStatus === 'PARTIAL' ? 'badge-partial' : 'badge-failed'}">
+              Status: ${result.overallStatus}
+            </span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Query Summary</div>
+          <div class="grid">
+            <div class="field"><span class="field-label">Intent:</span> <span class="field-val">${result.query?.intent || 'Geospatial Query'}</span></div>
+            <div class="field"><span class="field-label">Target:</span> <span class="field-val">${result.query?.target || 'N/A'}</span></div>
+            <div class="field"><span class="field-label">Operation:</span> <span class="field-val">${result.query?.operation || 'N/A'}</span></div>
+            <div class="field"><span class="field-label">Location:</span> <span class="field-val">${result.query?.location?.name || result.query?.areaOfInterest?.label || 'Specified Region'}</span></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Executive Summary</div>
+          <p style="white-space: pre-line; margin: 0; color: #0f172a;">${result.finalAnswer}</p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">DAG Execution Steps</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Step ID</th>
+                <th>Tool Name</th>
+                <th>Status</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.execution.map(s => `
+                <tr>
+                  <td style="font-family: monospace; font-weight: 600;">${s.stepId}</td>
+                  <td>${s.toolResult?.toolName || 'N/A'}</td>
+                  <td><strong>${s.executionState}</strong></td>
+                  <td>${s.toolResult?.message || s.message || 'Executed successfully'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Auditable Evidence & Provenance</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Operation</th>
+                <th>Source</th>
+                <th>Dataset</th>
+                <th>Confidence</th>
+                <th>Provenance URI</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.evidence.map(ev => `
+                <tr>
+                  <td style="font-weight: 600; color: #2563eb;">${ev.operation}</td>
+                  <td>${ev.source}</td>
+                  <td>${ev.dataset}</td>
+                  <td>${ev.confidence ? Math.round(ev.confidence * 100) + '% CONF' : 'DETERMINISTIC'}</td>
+                  <td style="font-family: monospace; font-size: 11px;">${ev.provenance}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footer">
+          CogniSights Natural-Language Geospatial Intelligence System • Report Generated on ${dateStr} • Deterministic Provenance Audited
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          };
+        </script>
+      </body>
+    </html>
+  `;
+
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
 }
 
 export function ResultPanel({ result, isLoading }: ResultPanelProps) {
@@ -23,21 +159,30 @@ export function ResultPanel({ result, isLoading }: ResultPanelProps) {
       <div className="flex justify-between items-center mb-4">
         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tool Outputs & Evidence</label>
         {result && (
-          <button 
-            onClick={() => {
-              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
-              const downloadAnchorNode = document.createElement('a');
-              downloadAnchorNode.setAttribute("href", dataStr);
-              downloadAnchorNode.setAttribute("download", "satquery-evidence.json");
-              document.body.appendChild(downloadAnchorNode);
-              downloadAnchorNode.click();
-              downloadAnchorNode.remove();
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors"
-          >
-            <Download size={14} />
-            Export Evidence
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => handleExportPDF(result)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold rounded-md transition-colors"
+            >
+              <FileText size={14} />
+              Export PDF
+            </button>
+            <button 
+              onClick={() => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "satquery-evidence.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors"
+            >
+              <Download size={14} />
+              Export Evidence
+            </button>
+          </div>
         )}
       </div>
       
