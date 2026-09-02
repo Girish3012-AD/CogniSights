@@ -1,6 +1,7 @@
 import { z } from "zod";
 import * as turf from "@turf/turf";
 import { PNG } from "pngjs";
+import proj4 from "proj4";
 import { ObjectDetectionResult, RasterWindowResult } from "../../../types/index.js";
 
 // ==========================================
@@ -112,18 +113,32 @@ export function pixelToGeographic(
   y: number,
   transform: number[],
   originX: number,
-  originY: number
+  originY: number,
+  crs?: string
 ): [number, number] {
+  let geoX: number;
+  let geoY: number;
   if (transform.length === 6) {
-    const gx = transform[0] + (x + originX) * transform[1] + (y + originY) * transform[2];
-    const gy = transform[3] + (x + originX) * transform[4] + (y + originY) * transform[5];
-    return [gx, gy];
+    geoX = transform[0] + (x + originX) * transform[1] + (y + originY) * transform[2];
+    geoY = transform[3] + (x + originX) * transform[4] + (y + originY) * transform[5];
+  } else {
+    const resX = transform[0];
+    const resY = transform.length > 1 ? transform[1] : -transform[0];
+    geoX = originX + (x * resX);
+    geoY = originY + (y * resY);
   }
 
-  const resX = transform[0];
-  const resY = transform.length > 1 ? transform[1] : -transform[0];
-  const geoX = originX + (x * resX);
-  const geoY = originY + (y * resY);
+  if (crs && crs !== "EPSG:4326") {
+    try {
+      const wgs84 = proj4(crs, "EPSG:4326", [geoX, geoY]);
+      if (wgs84 && !isNaN(wgs84[0]) && !isNaN(wgs84[1])) {
+        return [wgs84[0], wgs84[1]];
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
   return [geoX, geoY];
 }
 
@@ -134,12 +149,13 @@ export function convertBboxToGeoJSONPolygon(
   maxPxY: number,
   transform: number[],
   originX: number,
-  originY: number
+  originY: number,
+  crs?: string
 ): GeoJSON.Polygon {
-  const topLeft = pixelToGeographic(minPxX, minPxY, transform, originX, originY);
-  const topRight = pixelToGeographic(maxPxX, minPxY, transform, originX, originY);
-  const bottomRight = pixelToGeographic(maxPxX, maxPxY, transform, originX, originY);
-  const bottomLeft = pixelToGeographic(minPxX, maxPxY, transform, originX, originY);
+  const topLeft = pixelToGeographic(minPxX, minPxY, transform, originX, originY, crs);
+  const topRight = pixelToGeographic(maxPxX, minPxY, transform, originX, originY, crs);
+  const bottomRight = pixelToGeographic(maxPxX, maxPxY, transform, originX, originY, crs);
+  const bottomLeft = pixelToGeographic(minPxX, maxPxY, transform, originX, originY, crs);
 
   return {
     type: "Polygon",
@@ -157,13 +173,14 @@ export function convertPixelPolygonToGeoJSONPolygon(
   pixelCoords: Array<[number, number] | number[] | any>,
   transform: number[],
   originX: number,
-  originY: number
+  originY: number,
+  crs?: string
 ): GeoJSON.Polygon {
   if (!pixelCoords || pixelCoords.length < 3) {
     throw new Error("Pixel polygon must contain at least 3 vertices");
   }
 
-  const ring = pixelCoords.map((pt) => pixelToGeographic(Number(pt[0] ?? 0), Number(pt[1] ?? 0), transform, originX, originY));
+  const ring = pixelCoords.map((pt) => pixelToGeographic(Number(pt[0] ?? 0), Number(pt[1] ?? 0), transform, originX, originY, crs));
   const first = ring[0];
   const last = ring[ring.length - 1];
   if (first[0] !== last[0] || first[1] !== last[1]) {
@@ -255,8 +272,8 @@ export class RemoteInferenceAdapter {
     const confThreshold = options.confidenceThreshold ?? 0.40;
     const fetchFn = config?.fetchFn ?? fetch;
 
-    const width = rasterWindow.width ?? rasterWindow.pixelWindow?.width ?? 0;
-    const height = rasterWindow.height ?? rasterWindow.pixelWindow?.height ?? 0;
+    const width = rasterWindow.width !== undefined ? rasterWindow.width : (rasterWindow.pixelWindow?.width ?? 0);
+    const height = rasterWindow.height !== undefined ? rasterWindow.height : (rasterWindow.pixelWindow?.height ?? 0);
     const totalPixels = width * height;
 
     const tileCountX = Math.max(1, Math.ceil(width / maxTile));
@@ -407,9 +424,9 @@ export class RemoteInferenceAdapter {
 
       if (isRoboflow) {
         headers["Content-Type"] = "application/x-www-form-urlencoded";
-        // Roboflow API expects just the image for standard inference endpoint
+        // Roboflow API expects the raw base64 string for standard inference endpoint
         if (imageBase64) {
-          fetchBody = `image=${encodeURIComponent(imageBase64)}`;
+          fetchBody = imageBase64;
         }
       }
 
@@ -637,9 +654,9 @@ export class RemoteInferenceAdapter {
           polyGeom = det.geometry as GeoJSON.Polygon;
         } else if (det.bbox) {
           const [minPxX, minPxY, maxPxX, maxPxY] = det.bbox;
-          polyGeom = convertBboxToGeoJSONPolygon(minPxX, minPxY, maxPxX, maxPxY, transform, originX, originY);
+          polyGeom = convertBboxToGeoJSONPolygon(minPxX, minPxY, maxPxX, maxPxY, transform, originX, originY, rasterWindow.crs);
         } else if (det.polygon && det.polygon.length >= 3) {
-          polyGeom = convertPixelPolygonToGeoJSONPolygon(det.polygon as any, transform, originX, originY);
+          polyGeom = convertPixelPolygonToGeoJSONPolygon(det.polygon as any, transform, originX, originY, rasterWindow.crs);
         }
       } catch (geomErr: any) {
         continue;

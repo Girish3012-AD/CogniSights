@@ -71,14 +71,12 @@ export async function searchDatasetsProvider(criteria: DatasetSearchCriteria): P
       // If there are no strict terms, we can just return top 3 default or empty.
       if (strictTerms.length === 0) return false;
       
-      // We require at least one term to match strongly, or maybe all terms to match somewhat.
-      // Let's just say at least ONE term MUST be found, but 'ocean' might be in a dataset, so let's require ALL terms to match?
-      // No, requiring all might fail for "new buildings" if "new" isn't in the dataset.
-      // Let's score them and pick top 3!
-      
       let matchCount = 0;
       for (const t of strictTerms) {
         if (text.includes(t)) matchCount++;
+      }
+      if ((searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial")) && c.id === "naip") {
+        matchCount += 10;
       }
       return matchCount > 0;
     });
@@ -93,6 +91,10 @@ export async function searchDatasetsProvider(criteria: DatasetSearchCriteria): P
       for (const t of strictTerms) {
         if (textA.includes(t)) scoreA++;
         if (textB.includes(t)) scoreB++;
+      }
+      if ((searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial"))) {
+        if (a.id === "naip") scoreA += 10;
+        if (b.id === "naip") scoreB += 10;
       }
       return scoreB - scoreA;
     });

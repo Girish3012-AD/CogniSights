@@ -322,39 +322,56 @@ export function ResultPanel({ result, isLoading }: ResultPanelProps) {
             })()}
 
             {(() => {
-               const objectStep = result.execution.find(e => e.toolResult?.toolName === 'detectObjects');
+               const objectStep = result.execution.find(e => e.toolResult?.toolName === 'detectObjects' || e.toolResult?.toolName === 'detectBuildings');
                if (!objectStep) return null;
                
                const oData = objectStep.toolResult?.data as any;
                const state = objectStep.executionState;
+               const infStatus = oData?.inferenceStatus || state;
                
                let statusText = "";
                let statusClass = "";
-               if (state === "SUCCESS") { statusText = "✓ VERIFIED"; statusClass = "text-emerald-600"; }
-               else if (state === "NOT_IMPLEMENTED") { statusText = "⚠ NOT IMPLEMENTED"; statusClass = "text-amber-600"; }
-               else if (state === "FAILED") { statusText = "✕ FAILED"; statusClass = "text-rose-600"; }
+               if (state === "SUCCESS" && oData?.totalObjects > 0) { statusText = "✓ SUCCESS (REAL INFERENCE)"; statusClass = "text-emerald-600"; }
+               else if (state === "SUCCESS" && oData?.totalObjects === 0) { statusText = "○ NO_DETECTIONS"; statusClass = "text-amber-600"; }
+               else if (state === "NOT_IMPLEMENTED" || infStatus === "NOT_IMPLEMENTED") { statusText = "⚠ NOT_IMPLEMENTED"; statusClass = "text-amber-600"; }
+               else if (state === "FAILED" || infStatus === "FAILED") { statusText = "✕ FAILED"; statusClass = "text-rose-600"; }
+               else if (infStatus === "INCOMPATIBLE") { statusText = "⊘ INCOMPATIBLE"; statusClass = "text-rose-500"; }
                else if (state === "SKIPPED") { statusText = "↪ SKIPPED"; statusClass = "text-slate-400"; }
                else { statusText = state; statusClass = "text-slate-600"; }
                
                return (
                  <div className="mb-4 pb-4 border-b border-slate-200/50">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase mb-2">Object Detection</h4>
+                    <h4 className="text-xs font-bold text-slate-800 uppercase mb-2">Object Detection (Real Inference)</h4>
                     <div className="bg-white border border-slate-200 rounded-md p-3 text-xs text-slate-700 space-y-1">
                        <div className="flex justify-between font-medium">
-                          <span>Analysis Status:</span>
+                          <span>Inference Status:</span>
                           <span className={`font-bold ${statusClass}`}>{statusText}</span>
                        </div>
                        
                        {oData && state === "SUCCESS" && (
                          <>
                            <div className="flex justify-between">
-                              <span className="font-bold">Total Objects:</span>
-                              <span>{oData.totalObjects}</span>
+                              <span className="font-bold">Model:</span>
+                              <span>{oData.model || "External ML Model"} {oData.modelVersion ? `v${oData.modelVersion}` : ""}</span>
                            </div>
+                           <div className="flex justify-between">
+                              <span className="font-bold">Total Detections:</span>
+                              <span className="font-semibold">{oData.totalObjects ?? 0}</span>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="font-bold">Confidence Threshold:</span>
+                              <span>{oData.confidenceThreshold !== undefined ? `${(oData.confidenceThreshold * 100).toFixed(0)}%` : "40%"}</span>
+                           </div>
+                           {oData.inputRaster && (
+                             <div className="flex justify-between">
+                                <span className="font-bold">Input Raster:</span>
+                                <span className="truncate max-w-[180px]" title={oData.inputRaster}>{oData.inputRaster}</span>
+                             </div>
+                           )}
                            
                            {oData.objectsByClass && Object.keys(oData.objectsByClass).length > 0 && (
                              <div className="mt-2 pt-2 border-t border-slate-100">
-                               <div className="font-bold mb-1">Detections</div>
+                               <div className="font-bold mb-1">Detections by Class</div>
                                {Object.entries(oData.objectsByClass).map(([cls, count], i: number) => (
                                  <div key={i} className="flex justify-between">
                                     <span>{cls}:</span> <span>{String(count)}</span>
@@ -364,14 +381,18 @@ export function ResultPanel({ result, isLoading }: ResultPanelProps) {
                            )}
                          </>
                        )}
-                       {objectStep.executionState === 'NOT_IMPLEMENTED' ? (
+                       {state === 'NOT_IMPLEMENTED' || infStatus === 'NOT_IMPLEMENTED' ? (
                           <div className="mt-2 text-[10px] text-amber-700 bg-amber-50 p-2 rounded">
                              <div className="font-bold mb-1 border-b border-amber-200 pb-1">Inference Diagnostics</div>
-                             <div><span className="font-medium">Model Availability:</span> {(objectStep.toolResult?.data as any)?.modelAvailable ? 'Available' : 'Unavailable (No Model Weights)'}</div>
-                             <div><span className="font-medium">Runtime Availability:</span> {(objectStep.toolResult?.data as any)?.runtimeAvailable ? 'Available' : 'Unavailable (No ONNX/PyTorch Runtime)'}</div>
-                             <div className="italic mt-1">Real building detection safely bypassed to prevent hallucination.</div>
+                             <div><span className="font-medium">Reason:</span> No external inference endpoint configured (INFERENCE_API_URL).</div>
+                             <div className="italic mt-1">Real building detection safely bypassed to prevent synthetic hallucination.</div>
                           </div>
-                       ) : objectStep.toolResult?.message ? (
+                       ) : state === 'FAILED' ? (
+                          <div className="mt-2 text-[10px] text-rose-700 bg-rose-50 p-2 rounded">
+                             <div className="font-bold mb-1 border-b border-rose-200 pb-1">Inference Diagnostics</div>
+                             <div><span className="font-medium">Reason:</span> {oData?.processingMetadata?.error || objectStep.toolResult?.message || "Inference execution failed."}</div>
+                          </div>
+                       ) : objectStep.toolResult?.message && state !== 'SUCCESS' ? (
                           <div className="mt-2 text-[10px] text-slate-600 italic">
                              {objectStep.toolResult.message}
                           </div>

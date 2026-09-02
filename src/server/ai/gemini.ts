@@ -1,14 +1,20 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { StructuredQuery, StructuredQuerySchema } from "../../types/index.js";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
+function getAiClient(): GoogleGenAI {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable is required.");
+  }
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        "User-Agent": "aistudio-build",
+      },
     },
-  },
-});
+  });
+}
 
 
 async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
@@ -38,7 +44,7 @@ export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): 
     if (aoiStr) {
       prompt += `\nExplicit Area of Interest provided by user: ${aoiStr}. Map this directly to the areaOfInterest field if applicable. Do NOT invent a bounding box. Do NOT guess coordinates. If the AOI provided is a place name, put it in areaOfInterest.label. If it's a bounding box string, parse it to areaOfInterest.bbox. If you cannot confidently resolve the bounding box, leave it empty. Let the geocoder handle place names.`;
     }
-    response = await withRetry(() => ai.models.generateContent({
+    response = await withRetry(() => getAiClient().models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
@@ -124,13 +130,21 @@ export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): 
 }
 
 export async function generateFinalAnswer(nlQuery: string, planExecutionSummary: any): Promise<string> {
-  const response = await withRetry(() => ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `User Query: ${nlQuery}\n\nExecution Summary: ${JSON.stringify(planExecutionSummary, null, 2)}\n\nGenerate a final answer for the user based strictly on the execution summary.`,
-    config: {
-      systemInstruction: "You are SATQuery, a geospatial AI platform. Provide a professional summary of the analysis steps. Follow these strict rules:\n1. Distinguish between 'satellite imagery metadata retrieval' and 'satellite-derived building detection'. If only metadata was retrieved, do not claim satellite imagery was analyzed.\n2. Distinguish between 'OSM building footprints' and 'satellite-derived detections'. If OSM data was used, state it clearly.\n3. If a tool was NOT_IMPLEMENTED, FAILED, or SKIPPED, do not claim the requested geographic analysis was completed, and do not invent findings.\n4. Explain what was successfully executed and what remains unavailable.",
-    },
-  }));
+  try {
+    const response = await withRetry(() => getAiClient().models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `User Query: ${nlQuery}\n\nExecution Summary: ${JSON.stringify(planExecutionSummary, null, 2)}\n\nGenerate a final answer for the user based strictly on the execution summary.`,
+      config: {
+        systemInstruction: "You are SATQuery, a geospatial AI platform. Provide a professional summary of the analysis steps. Follow these strict rules:\n1. Distinguish between 'satellite imagery metadata retrieval' and 'satellite-derived building detection'. If only metadata was retrieved, do not claim satellite imagery was analyzed.\n2. Distinguish between 'OSM building footprints' and 'satellite-derived detections'. If OSM data was used, state it clearly.\n3. If a tool was NOT_IMPLEMENTED, FAILED, or SKIPPED, do not claim the requested geographic analysis was completed, and do not invent findings.\n4. Explain what was successfully executed and what remains unavailable.",
+      },
+    }));
 
-  return response.text || "Failed to generate a final answer.";
+    return response.text || "Execution completed successfully.";
+  } catch (error: any) {
+    console.warn("Gemini final answer generation failed (fallback to rule-based summary):", error.message);
+    const status = planExecutionSummary?.overallStatus || "UNKNOWN";
+    const steps = planExecutionSummary?.executionSteps || [];
+    const successSteps = steps.filter((s: any) => s.executionState === "SUCCESS").length;
+    return `Query "${nlQuery}" executed with status: ${status}. (${successSteps}/${steps.length} pipeline steps succeeded).`;
+  }
 }

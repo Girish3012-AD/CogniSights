@@ -93,6 +93,11 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
       } else if (epsg >= 32701 && epsg <= 32760) {
         const zone = epsg - 32700;
         proj4.defs(projString, `+proj=utm +zone=${zone} +south +datum=WGS84 +units=m +no_defs`);
+      } else if (epsg >= 26901 && epsg <= 26923) {
+        const zone = epsg - 26900;
+        proj4.defs(projString, `+proj=utm +zone=${zone} +ellps=GRS80 +datum=NAD83 +units=m +no_defs`);
+      } else if (epsg === 3857 || epsg === 900913) {
+        proj4.defs(projString, "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs");
       } else if (epsg === 4326) {
         proj4.defs(projString, "+proj=longlat +datum=WGS84 +no_defs");
       } else {
@@ -166,6 +171,18 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
     pMinY = Math.max(0, pMinY);
     pMaxY = Math.min(height, pMaxY);
 
+    // If window is larger than 1024x1024, sample a representative 1024x1024 center sub-window
+    if (pMaxX - pMinX > 1024) {
+      const centerX = Math.floor((pMinX + pMaxX) / 2);
+      pMinX = Math.max(0, centerX - 512);
+      pMaxX = Math.min(width, pMinX + 1024);
+    }
+    if (pMaxY - pMinY > 1024) {
+      const centerY = Math.floor((pMinY + pMaxY) / 2);
+      pMinY = Math.max(0, centerY - 512);
+      pMaxY = Math.min(height, pMinY + 1024);
+    }
+
     const winWidth = pMaxX - pMinX;
     const winHeight = pMaxY - pMinY;
     const pixelCount = winWidth * winHeight;
@@ -180,14 +197,11 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
       };
     }
 
-    if (pixelCount > 4000000) { // 2000x2000 max safety limit
-      return {
-        toolName: "processRasterWindow",
-        status: "FAILED",
-        message: `Requested pixel window is too large (${winWidth}x${winHeight} = ${pixelCount} pixels). Exceeds 4M limit.`,
-        evidence: []
-      };
-    }
+    // Compute exact geographic bounding coordinates for the sampled pixel window
+    const sampleMinX = Math.min(bbox[0] + pMinX * resX, bbox[0] + pMaxX * resX);
+    const sampleMaxX = Math.max(bbox[0] + pMinX * resX, bbox[0] + pMaxX * resX);
+    const sampleMinY = Math.min(bbox[1] + pMinY * resY, bbox[1] + pMaxY * resY);
+    const sampleMaxY = Math.max(bbox[1] + pMinY * resY, bbox[1] + pMaxY * resY);
 
     // Actually read the window using HTTP Range
     const rasters = await image.readRasters({ window: [pMinX, pMinY, pMaxX, pMaxY] });
@@ -212,10 +226,10 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
         rasterId: asset.itemId,
         assetKey: asset.assetKey,
         window: {
-          minX: intersectMinX,
-          minY: intersectMinY,
-          maxX: intersectMaxX,
-          maxY: intersectMaxY
+          minX: sampleMinX,
+          minY: sampleMinY,
+          maxX: sampleMaxX,
+          maxY: sampleMaxY
         },
         pixelWindow: {
           originX: pMinX,
@@ -223,8 +237,8 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
           width: winWidth,
           height: winHeight
         },
-        width: width,
-        height: height,
+        width: winWidth,
+        height: winHeight,
         bandCount: rasters.length,
         dataType: dataType,
         nodata: nodata,

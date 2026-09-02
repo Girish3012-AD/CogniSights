@@ -219,4 +219,76 @@ describe("Milestone 29A - Remote Inference Adapter", () => {
     expect(poly.coordinates[0].length).toBe(5);
     expect(poly.coordinates[0][0]).toEqual(poly.coordinates[0][4]);
   });
+
+  it("10. Roboflow Format Compatibility: accurately parses center-x/y predictions into bboxes", async () => {
+    const roboflowResponse = {
+      predictions: [
+        {
+          x: 50,
+          y: 60,
+          width: 20,
+          height: 30,
+          class: "building",
+          confidence: 0.88
+        }
+      ],
+      time: 0.12
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(roboflowResponse)
+    } as Response);
+
+    const result = await RemoteInferenceAdapter.execute(
+      sampleRaster,
+      { targetClasses: ["buildings"], confidenceThreshold: 0.5 },
+      { apiUrl: "https://detect.roboflow.com/sat-building-model/1", apiKey: "rf_secret_key", fetchFn: mockFetch }
+    );
+
+    expect(result.status).toBe("SUCCESS");
+    expect(result.totalObjects).toBe(1);
+    expect(result.features.features.length).toBe(1);
+    expect(result.features.features[0].properties?.className).toBe("building");
+    expect(result.features.features[0].properties?.confidence).toBe(0.88);
+  });
+
+  it("11. Base64 PNG Encoding: produces valid base64 representation from multi-band pixels", async () => {
+    const rasterWithMultiBands: RasterWindowResult = {
+      ...sampleRaster,
+      width: 16,
+      height: 16,
+      pixelWindow: { originX: 0, originY: 0, width: 16, height: 16 },
+      pixelData: [
+        new Float32Array(16 * 16).fill(120),
+        new Float32Array(16 * 16).fill(140),
+        new Float32Array(16 * 16).fill(160),
+        new Float32Array(16 * 16).fill(255)
+      ]
+    };
+
+    let sentBase64: string | undefined;
+    const mockFetch = vi.fn().mockImplementation(async (url: string, init: any) => {
+      const parsed = JSON.parse(init.body);
+      sentBase64 = parsed.imageBase64;
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ status: "NO_DETECTIONS", model: "Validator", version: "1.0" })
+      } as Response;
+    });
+
+    const result = await RemoteInferenceAdapter.execute(
+      rasterWithMultiBands,
+      { targetClasses: ["buildings"] },
+      { apiUrl: "https://api.satml.example.com/detect", fetchFn: mockFetch }
+    );
+
+    expect(result.status).toBe("SUCCESS");
+    expect(sentBase64).toBeDefined();
+    expect(sentBase64?.length).toBeGreaterThan(50);
+    // Base64 header for PNG starts with iVBORw0KGgo
+    expect(sentBase64?.startsWith("iVBORw0KGgo")).toBe(true);
+  });
 });

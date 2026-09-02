@@ -13,6 +13,10 @@ function extractGeometry(input: any, key: string = 'geometry'): GeoJSONGeometry 
         if ('type' in output && (output as any).type === 'FeatureCollection' && 'features' in output && Array.isArray(output.features)) {
           return (output as any) as GeoJSONFeatureCollection;
         }
+        // ObjectDetectionResult with features
+        if ('features' in output && (output as any).features && (output as any).features.type === 'FeatureCollection') {
+          return (output as any).features as GeoJSONFeatureCollection;
+        }
         // Direct geometry object
         if ('type' in output && 'coordinates' in output && Array.isArray((output as any).coordinates)) {
           return (output as any) as GeoJSONGeometry;
@@ -62,6 +66,8 @@ function extractGeometriesForIntersection(input: any): { target: GeoJSONGeometry
           geom = (output as any).added as GeoJSONFeatureCollection;
         } else if ('type' in output && (output as any).type === 'FeatureCollection' && 'features' in output && Array.isArray((output as any).features)) {
           geom = output as GeoJSONFeatureCollection;
+        } else if ('features' in output && (output as any).features && (output as any).features.type === 'FeatureCollection') {
+          geom = (output as any).features as GeoJSONFeatureCollection;
         } else if ('buildings' in output && (output as any).buildings && (output as any).buildings.type === 'FeatureCollection') {
           geom = (output as any).buildings as GeoJSONFeatureCollection;
         } else if ('type' in output && 'coordinates' in output) {

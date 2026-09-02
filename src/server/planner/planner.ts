@@ -120,19 +120,14 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
   // 3. Temporal imagery retrieval
   const imageryIds: string[] = [];
   
-  // Default to a recent timePoint if none provided but we need imagery
-  if (!query.timeRange?.start && !query.timeRange?.end) {
-    const isRasterRequired = query.target.toLowerCase().includes("building") || 
-                             query.target.toLowerCase().includes("vegetation") ||
-                             query.target.toLowerCase().includes("forest") ||
-                             query.target.toLowerCase().includes("agricultural") ||
-                             query.target.toLowerCase().includes("deforestation");
-    if (isRasterRequired) {
-       query.timeRange = { start: "2024-01-01" };
-    }
-  }
+  // Default to retrieving imagery if target requires raster data
+  const isRasterRequired = query.target.toLowerCase().includes("building") || 
+                           query.target.toLowerCase().includes("vegetation") ||
+                           query.target.toLowerCase().includes("forest") ||
+                           query.target.toLowerCase().includes("agricultural") ||
+                           query.target.toLowerCase().includes("deforestation");
 
-  if (query.timeRange?.start) {
+  if (query.timeRange?.start || isRasterRequired) {
     const id = `step_${currentOrder++}_imagery_start`;
     const deps = [targetDatasetId];
     if (aoiId) deps.push(aoiId);
@@ -141,8 +136,8 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       order: currentOrder - 1,
       toolName: "getSatelliteImagery",
       operation: "retrieve_imagery",
-      description: `Retrieve imagery for ${query.timeRange.start}.`,
-      input: { date: query.timeRange.start },
+      description: query.timeRange?.start ? `Retrieve imagery for ${query.timeRange.start}.` : `Retrieve latest available satellite/aerial imagery.`,
+      input: query.timeRange?.start ? { date: query.timeRange.start } : {},
       dependsOn: deps,
       status: "PENDING"
     });
@@ -153,7 +148,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       order: currentOrder - 1,
       toolName: "processRasterWindow",
       operation: "read_raster",
-      description: `Read raster window for ${query.timeRange.start}.`,
+      description: query.timeRange?.start ? `Read raster window for ${query.timeRange.start}.` : `Read high-resolution raster window.`,
       input: {},
       dependsOn: [id].concat(aoiId ? [aoiId] : []),
       status: "PENDING"
@@ -165,7 +160,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       order: currentOrder - 1,
       toolName: "preprocessRaster",
       operation: "preprocess_raster",
-      description: `Preprocess raster window for ${query.timeRange.start}.`,
+      description: query.timeRange?.start ? `Preprocess raster window for ${query.timeRange.start}.` : `Preprocess raster window.`,
       input: {},
       dependsOn: [readId, id],
       status: "PENDING"
@@ -351,12 +346,12 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
 
   // 5. Spatial intersection if applicable
   let finalSpatialId = analysisId;
-  if (bufferId || (datasetIds.length > 0 && !bufferId)) {
+  if (bufferId || referenceDatasetId) {
     const intersectId = `step_${currentOrder++}_intersection`;
     const dependencies = [];
     if (analysisId) dependencies.push(analysisId);
     if (bufferId) dependencies.push(bufferId);
-    else if (datasetIds.length > 0) dependencies.push(...datasetIds);
+    else if (referenceDatasetId) dependencies.push(referenceDatasetId);
     
     steps.push({
       id: intersectId,
