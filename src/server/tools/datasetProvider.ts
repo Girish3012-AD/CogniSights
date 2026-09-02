@@ -84,7 +84,7 @@ export async function searchDatasetsProvider(criteria: DatasetSearchCriteria): P
       for (const t of strictTerms) {
         if (text.includes(t)) matchCount++;
       }
-      if ((searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial")) && c.id === "naip") {
+      if ((searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial") || searchTerm.includes("urban") || searchTerm.includes("expansion") || searchTerm.includes("development")) && (c.id === "naip" || c.id === "sentinel-2-l2a" || c.id.includes("lulc"))) {
         matchCount += 10;
       }
       return matchCount > 0;
@@ -101,15 +101,20 @@ export async function searchDatasetsProvider(criteria: DatasetSearchCriteria): P
         if (textA.includes(t)) scoreA++;
         if (textB.includes(t)) scoreB++;
       }
-      if ((searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial"))) {
-        if (a.id === "naip") scoreA += 10;
-        if (b.id === "naip") scoreB += 10;
+      if (searchTerm.includes("building") || searchTerm.includes("footprint") || searchTerm.includes("aerial") || searchTerm.includes("urban") || searchTerm.includes("expansion") || searchTerm.includes("development")) {
+        if (a.id === "naip" || a.id === "sentinel-2-l2a" || a.id.includes("lulc")) scoreA += 10;
+        if (b.id === "naip" || b.id === "sentinel-2-l2a" || b.id.includes("lulc")) scoreB += 10;
       }
       return scoreB - scoreA;
     });
 
-    // Actually, "unicorns" will have score 0, and matchCount 0, so it will correctly be filtered out!
-    const finalMatched = matched.slice(0, 3);
+    // Fallback: if no collection matched terms directly, pick top optical imagery datasets (Sentinel-2, NAIP)
+    let finalCollections = matched;
+    if (finalCollections.length === 0 && strictTerms.length > 0) {
+      finalCollections = allCollections.filter(c => c.id === "sentinel-2-l2a" || c.id === "naip" || c.id.includes("lulc"));
+    }
+
+    const finalMatched = finalCollections.slice(0, 3);
 
     const mappedMetadata: DatasetMetadata[] = finalMatched.map(c => {
       const selfLink = c.links?.find(l => l.rel === "self")?.href;

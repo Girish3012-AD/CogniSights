@@ -82,7 +82,9 @@ export async function geospatialFeatureProvider(input: any): Promise<ToolResult<
       res = await fetchWithRetry("https://overpass-api.de/api/interpreter", {
         method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'SATQuery-Agent/1.0',
+          'Accept': 'application/json'
         },
         body: params.toString()
       }, {
