@@ -1,4 +1,5 @@
 import { AreaOfInterest, ToolResult } from "../../types/index.js";
+import { fetchWithRetry } from "../utils/fetchWithRetry.js";
 import { z } from "zod";
 
 const NominatimResponseSchema = z.array(z.object({
@@ -79,20 +80,18 @@ export async function resolveAreaOfInterestProvider(input: any): Promise<ToolRes
     const query = encodeURIComponent(placeName);
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=jsonv2&polygon_geojson=1&limit=3`;
     
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    
     let response;
     try {
-      response = await fetch(url, {
-        headers: { 'User-Agent': 'SATQuery-Agent/1.0' },
-        signal: controller.signal as any
+      response = await fetchWithRetry(url, {
+        headers: { 'User-Agent': 'SATQuery-Agent/1.0' }
+      }, {
+        providerName: 'Nominatim',
+        operationName: 'geocoding',
+        timeoutMs: 10000,
+        maxRetries: 3
       });
     } catch (err: any) {
-       if (err.name === 'AbortError') return { toolName: "resolveAreaOfInterest", status: "FAILED", message: "Geocoding timeout", evidence: [] };
-       throw err;
-    } finally {
-      clearTimeout(timeout);
+       return { toolName: "resolveAreaOfInterest", status: "FAILED", message: "Geocoding failed/timeout", evidence: [] };
     }
     
     if (!response.ok) {

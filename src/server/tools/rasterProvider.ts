@@ -1,4 +1,5 @@
 import { RasterAsset, RasterMetadata, ImageryMetadata, Evidence } from "../../types/index.js";
+import { fetchWithRetry } from "../utils/fetchWithRetry.js";
 
 // We want to select optical imagery bands or the visual rendering.
 const PREFERRED_ASSET_KEYS = ["visual", "rendered_preview", "B04", "B08", "image"];
@@ -48,14 +49,19 @@ export async function processRasterAssets(
     let signedHref = selectedAssetInfo.href;
     try {
       const signUrl = `https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(selectedAssetInfo.href)}`;
-      const signRes = await fetch(signUrl);
+      const signRes = await fetchWithRetry(signUrl, {}, {
+        providerName: 'PlanetaryComputer',
+        operationName: 'sas_signing',
+        timeoutMs: 8000,
+        maxRetries: 2
+      });
       if (signRes.ok) {
         const signData = await signRes.json() as any;
         if (signData && signData.href) {
           signedHref = signData.href;
         }
       } else {
-        errors.push(`Failed to sign asset ${selectedAssetKey} for item ${feature.id}`);
+        errors.push(`Failed to sign asset ${selectedAssetKey} for item ${feature.id}: HTTP ${signRes.status}`);
         continue;
       }
     } catch (e: any) {
@@ -66,7 +72,12 @@ export async function processRasterAssets(
     // 4. Validate Asset Access
     try {
       // Use HEAD request to validate if the raster asset is actually accessible without downloading it
-      const accessRes = await fetch(signedHref, { method: 'HEAD' });
+      const accessRes = await fetchWithRetry(signedHref, { method: 'HEAD' }, {
+        providerName: 'PlanetaryComputer',
+        operationName: 'raster_access_check',
+        timeoutMs: 10000,
+        maxRetries: 2
+      });
       if (!accessRes.ok) {
          errors.push(`Raster asset ${selectedAssetKey} for item ${feature.id} returned HTTP ${accessRes.status} on access test`);
          continue;

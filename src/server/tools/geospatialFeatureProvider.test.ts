@@ -1,22 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { geospatialFeatureProvider } from './geospatialFeatureProvider.js';
-import fetch from 'node-fetch';
 
-vi.mock('node-fetch', () => {
+// geospatialFeatureProvider now uses fetchWithRetry which calls global fetch
+// Mock global.fetch directly
+
+function makeMockResponse(status: number, body: any, ok?: boolean) {
   return {
-    default: vi.fn()
-  };
-});
+    ok: ok ?? (status >= 200 && status < 300),
+    status,
+    statusText: String(status),
+    headers: { get: () => null },
+    text: async () => JSON.stringify(body),
+    json: async () => body,
+  } as any as Response;
+}
 
 describe('geospatialFeatureProvider', () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   it('should retrieve major roads correctly', async () => {
-    (fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    global.fetch = vi.fn().mockResolvedValue(
+      makeMockResponse(200, {
         elements: [
           {
             type: "way",
@@ -26,7 +35,7 @@ describe('geospatialFeatureProvider', () => {
           }
         ]
       })
-    });
+    );
 
     const res = await geospatialFeatureProvider({
       featureType: 'major roads',
@@ -42,10 +51,9 @@ describe('geospatialFeatureProvider', () => {
   });
 
   it('should return empty FeatureCollection if no results', async () => {
-    (fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ elements: [] })
-    });
+    global.fetch = vi.fn().mockResolvedValue(
+      makeMockResponse(200, { elements: [] })
+    );
 
     const res = await geospatialFeatureProvider({
       featureType: 'rivers',
@@ -70,7 +78,9 @@ describe('geospatialFeatureProvider', () => {
   });
 
   it('should return FAILED on fetch error', async () => {
-    (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    // All retries fail with a network error.
+    // fetchWithRetry retries 3 times with exponential backoff (1s+2s+4s ≈ 7s).
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     const res = await geospatialFeatureProvider({
       featureType: 'hospitals',
@@ -81,7 +91,7 @@ describe('geospatialFeatureProvider', () => {
 
     expect(res.status).toBe('FAILED');
     expect(res.message).toContain('Feature detection error');
-  });
+  }, 15000); // extended timeout to allow 3 retries with backoff
 
   it('should return FAILED if no AOI is provided', async () => {
     const res = await geospatialFeatureProvider({

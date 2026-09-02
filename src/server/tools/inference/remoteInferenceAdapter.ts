@@ -443,40 +443,93 @@ export class RemoteInferenceAdapter {
         finalApiUrl = `${apiUrl}${separator}api_key=${encodeURIComponent(apiKey.trim())}`;
       }
 
-      const response = await fetchFn(finalApiUrl, {
-        method: "POST",
-        headers,
-        body: fetchBody,
-        signal: AbortSignal.timeout(timeoutMs)
-      });
+      // Retry logic: bounded retries for 429 and 5xx, not for 4xx auth/not-found
+      const MAX_INFERENCE_RETRIES = 3;
+      let inferenceAttempt = 0;
+      while (true) {
+        inferenceAttempt++;
+        try {
+          const resp = await fetchFn(finalApiUrl, {
+            method: "POST",
+            headers,
+            body: fetchBody,
+            signal: AbortSignal.timeout(timeoutMs)
+          });
 
-      responseStatus = response.status;
-      rawResponseText = await response.text();
+          responseStatus = resp.status;
 
-      if (!response.ok) {
-        return {
-          status: "FAILED",
-          inferenceStatus: "FAILED",
-          classesRequested: options.targetClasses,
-          classesDetected: [],
-          totalObjects: 0,
-          objectsByClass: {},
-          objects: [],
-          inputRaster: rasterWindow.rasterId || "unknown",
-          tileCount: totalTiles,
-          processingMetadata: {
-            ...processingMetadata,
-            httpStatus: responseStatus,
-            error: `Remote Inference API returned HTTP ${responseStatus}: ${response.statusText}`
-          },
-          model: "Remote API",
-          modelVersion: "N/A",
-          confidenceThreshold: confThreshold,
-          features: turf.featureCollection([])
-        };
+          const isTransient = [429, 408, 500, 502, 503, 504].includes(responseStatus);
+          if (!resp.ok && isTransient && inferenceAttempt < MAX_INFERENCE_RETRIES) {
+            let retryDelay = 1000 * Math.pow(2, inferenceAttempt - 1) + Math.random() * 200;
+            const retryAfter = resp.headers?.get?.("Retry-After") ?? null;
+            if (retryAfter) {
+              const parsed = parseInt(retryAfter, 10);
+              if (!isNaN(parsed)) retryDelay = parsed * 1000 + 200;
+            }
+            retryDelay = Math.min(retryDelay, 10000);
+            await new Promise(r => setTimeout(r, retryDelay));
+            continue;
+          }
+
+          rawResponseText = await resp.text();
+
+          if (!resp.ok) {
+            return {
+              status: "FAILED",
+              inferenceStatus: "FAILED",
+              classesRequested: options.targetClasses,
+              classesDetected: [],
+              totalObjects: 0,
+              objectsByClass: {},
+              objects: [],
+              inputRaster: rasterWindow.rasterId || "unknown",
+              tileCount: totalTiles,
+              processingMetadata: {
+                ...processingMetadata,
+                httpStatus: responseStatus,
+                inferenceAttempts: inferenceAttempt,
+                error: `Remote Inference API returned HTTP ${responseStatus}: ${resp.statusText}`
+              },
+              model: "Remote API",
+              modelVersion: "N/A",
+              confidenceThreshold: confThreshold,
+              features: turf.featureCollection([])
+            };
+          }
+          break; // success
+        } catch (networkError: any) {
+          const isTimeout = networkError.name === "TimeoutError" || networkError.message?.toLowerCase().includes("timeout") || networkError.message?.toLowerCase().includes("aborted") || networkError.message?.toLowerCase().includes("fetch failed");
+          if (isTimeout && inferenceAttempt < MAX_INFERENCE_RETRIES) {
+            const retryDelay = Math.min(1000 * Math.pow(2, inferenceAttempt - 1) + Math.random() * 200, 10000);
+            await new Promise(r => setTimeout(r, retryDelay));
+            continue;
+          }
+          return {
+            status: "FAILED",
+            inferenceStatus: "FAILED",
+            classesRequested: options.targetClasses,
+            classesDetected: [],
+            totalObjects: 0,
+            objectsByClass: {},
+            objects: [],
+            inputRaster: rasterWindow.rasterId || "unknown",
+            tileCount: totalTiles,
+            processingMetadata: {
+              ...processingMetadata,
+              inferenceAttempts: inferenceAttempt,
+              error: isTimeout
+                ? `Remote Inference API request timed out after ${timeoutMs}ms (${inferenceAttempt} attempts)`
+                : `Remote Inference API network error: ${networkError.message}`
+            },
+            model: "Remote API",
+            modelVersion: "N/A",
+            confidenceThreshold: confThreshold,
+            features: turf.featureCollection([])
+          };
+        }
       }
-    } catch (networkError: any) {
-      const isTimeout = networkError.name === "TimeoutError" || networkError.message?.toLowerCase().includes("timeout") || networkError.message?.toLowerCase().includes("aborted");
+    } catch (outerErr: any) {
+      // Should not reach here; individual retries handle all errors above
       return {
         status: "FAILED",
         inferenceStatus: "FAILED",
@@ -487,12 +540,7 @@ export class RemoteInferenceAdapter {
         objects: [],
         inputRaster: rasterWindow.rasterId || "unknown",
         tileCount: totalTiles,
-        processingMetadata: {
-          ...processingMetadata,
-          error: isTimeout
-            ? `Remote Inference API request timed out after ${timeoutMs}ms`
-            : `Remote Inference API network error: ${networkError.message}`
-        },
+        processingMetadata: { ...processingMetadata, error: `Unexpected error: ${outerErr.message}` },
         model: "Remote API",
         modelVersion: "N/A",
         confidenceThreshold: confThreshold,

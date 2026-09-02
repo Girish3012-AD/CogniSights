@@ -1,5 +1,6 @@
 import { DatasetSearchCriteria, DatasetMetadata, ToolResult } from "../../types/index.js";
 import { z } from "zod";
+import { fetchWithRetry } from "../utils/fetchWithRetry.js";
 
 const MpcCollectionSchema = z.object({
   id: z.string(),
@@ -19,12 +20,20 @@ const MpcCollectionsResponseSchema = z.object({
 export async function searchDatasetsProvider(criteria: DatasetSearchCriteria): Promise<ToolResult<DatasetMetadata[]>> {
   try {
     
-    const fetchPromise = fetch("https://planetarycomputer.microsoft.com/api/stac/v1/collections", {
-      method: "GET",
-      headers: { "Accept": "application/json" }
-    });
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Planetary Computer API timeout')), 10000));
-    const response = await Promise.race([fetchPromise, timeoutPromise]) as any;
+    let response;
+    try {
+      response = await fetchWithRetry("https://planetarycomputer.microsoft.com/api/stac/v1/collections", {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      }, {
+        providerName: 'PlanetaryComputer',
+        operationName: 'stac_collection_discovery',
+        timeoutMs: 10000,
+        maxRetries: 3
+      });
+    } catch (e) {
+      return { toolName: "searchDatasets", status: "FAILED", message: "Planetary Computer STAC timeout or network failure.", evidence: [] };
+    }
 
 
     if (!response.ok) {

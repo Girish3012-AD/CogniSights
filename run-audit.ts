@@ -1,5 +1,5 @@
 import fs from "fs";
-const envFile = fs.readFileSync(".env.example", "utf8");
+const envFile = fs.readFileSync(".env", "utf8");
 envFile.split("\n").forEach(line => {
   const parts = line.split("=");
   if (parts.length === 2 && !process.env[parts[0]]) {
@@ -10,7 +10,7 @@ envFile.split("\n").forEach(line => {
 import { handleQuery } from "./src/server/analysis/executor.js";
 
 const queries = [
-  "Detect buildings in Seattle",
+  // "Detect buildings in Seattle",
   "Detect buildings added or removed between 2019 and 2023 in Seattle",
   "Analyze vegetation in Pune",
   "Find hospitals near Pune",
@@ -54,8 +54,8 @@ async function main() {
           success = true;
         } catch (err) {
           console.log(`ERROR executing query (Attempt ${attempts}):`, err.message || err);
-          if (err.message && err.message.includes("429")) {
-              console.log("Rate limited (429). Waiting 35 seconds before retry...");
+          if (err.message && (err.message.includes("429") || err.message.includes("fetch failed") || err.message.includes("503"))) {
+              console.log("Transient error. Waiting 35 seconds before retry...");
               await sleep(35000);
           } else {
               break;

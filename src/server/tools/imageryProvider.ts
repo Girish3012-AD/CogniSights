@@ -2,6 +2,7 @@
 import { SatelliteImagerySearchCriteria, ImageryMetadata, ToolResult, DatasetMetadata, SatelliteImageryResult } from "../../types/index.js";
 import { z } from "zod";
 import { processRasterAssets } from "./rasterProvider.js";
+import { fetchWithRetry } from "../utils/fetchWithRetry.js";
 
 const MpcFeatureSchema = z.object({
   id: z.string(),
@@ -69,14 +70,21 @@ export async function getSatelliteImageryProvider(input: any): Promise<ToolResul
     if (collections.length > 0) payload.collections = collections;
     if (bbox) payload.bbox = bbox;
 
-    const fetchPromise = fetch("https://planetarycomputer.microsoft.com/api/stac/v1/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Planetary Computer API timeout')), 10000));
-    const response = await Promise.race([fetchPromise, timeoutPromise]) as any;
+    let response;
+    try {
+      response = await fetchWithRetry("https://planetarycomputer.microsoft.com/api/stac/v1/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }, {
+        providerName: 'PlanetaryComputer',
+        operationName: 'stac_item_search',
+        timeoutMs: 15000,
+        maxRetries: 3
+      });
+    } catch (e) {
+      return { toolName: "getSatelliteImagery", status: "FAILED", message: "Planetary Computer STAC search timeout or network failure.", evidence: [] };
+    }
 
     if (!response.ok) {
       return {

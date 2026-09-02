@@ -1,5 +1,5 @@
 import { ToolResult, GeoJSONFeatureCollection, GeoJSONFeatureCollectionSchema } from "../../types/index.js";
-import fetch from "node-fetch";
+import { fetchWithRetry } from "../utils/fetchWithRetry.js";
 
 export async function geospatialFeatureProvider(input: any): Promise<ToolResult<GeoJSONFeatureCollection>> {
   try {
@@ -77,18 +77,28 @@ export async function geospatialFeatureProvider(input: any): Promise<ToolResult<
 
     
     
-    const fetchPromise = fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
-    });
-    
-    // 10 second timeout
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Overpass API timeout')), 30000));
-    
-    const res = await Promise.race([fetchPromise, timeoutPromise]) as any;
+    let res;
+    try {
+      res = await fetchWithRetry("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+      }, {
+        providerName: 'Overpass',
+        operationName: 'feature_discovery',
+        timeoutMs: 30000,
+        maxRetries: 3
+      });
+    } catch (e) {
+      return {
+        toolName: "searchGeospatialFeatures",
+        status: "FAILED",
+        message: "Feature detection error: Overpass API timeout or network failure.",
+        evidence: []
+      };
+    }
 
 
 

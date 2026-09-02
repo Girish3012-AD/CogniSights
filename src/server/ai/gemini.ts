@@ -21,20 +21,37 @@ async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promis
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
-      return await operation();
+      // Wrap operation in a per-attempt timeout of 30s
+      const result = await Promise.race([
+        operation(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Gemini request timeout")), 30000)
+        )
+      ]);
+      return result;
     } catch (error: any) {
-      const isTransient = error.message?.includes("503") || error.message?.includes("UNAVAILABLE") || error.message?.includes("high demand") || error.status === 503;
+      const msg = error.message || "";
+      const isTransient =
+        msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("high demand") ||
+        msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") ||
+        msg.includes("fetch failed") || msg.includes("timeout") ||
+        msg.includes("502") || msg.includes("500") ||
+        error.status === 503 || error.status === 429 || error.status === 500;
       if (isTransient && attempt < maxRetries - 1) {
         attempt++;
-        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-        console.log(`Gemini API busy (503). Retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${maxRetries})`);
+        // Respect Retry-After-style delay if available in message
+        let delay = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+        const retryMatch = msg.match(/retry in (\d+)/i);
+        if (retryMatch) delay = parseInt(retryMatch[1]) * 1000 + 500;
+        delay = Math.min(delay, 15000); // cap at 15s
+        console.warn(`Gemini transient error (attempt ${attempt}/${maxRetries}). Retrying in ${Math.round(delay)}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
         throw error;
       }
     }
   }
-  throw new Error("Maximum retries reached");
+  throw new Error("Gemini: maximum retries reached");
 }
 
 export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): Promise<StructuredQuery> {
