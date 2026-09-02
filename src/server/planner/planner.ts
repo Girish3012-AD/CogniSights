@@ -128,11 +128,15 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
   const imageryIds: string[] = [];
   
   // Default to retrieving imagery if target requires raster data
-  const isRasterRequired = query.target.toLowerCase().includes("building") || 
-                           query.target.toLowerCase().includes("vegetation") ||
-                           query.target.toLowerCase().includes("forest") ||
-                           query.target.toLowerCase().includes("agricultural") ||
-                           query.target.toLowerCase().includes("deforestation");
+  const isRasterRequired = targetLowerStr.includes("building") || 
+                           targetLowerStr.includes("vegetation") ||
+                           targetLowerStr.includes("forest") ||
+                           targetLowerStr.includes("agricultural") ||
+                           targetLowerStr.includes("deforestation") ||
+                           targetLowerStr.includes("urban") ||
+                           targetLowerStr.includes("expansion") ||
+                           targetLowerStr.includes("development") ||
+                           targetLowerStr.includes("land cover");
 
   if (query.timeRange?.start || isRasterRequired) {
     const id = `step_${currentOrder++}_imagery_start`;
@@ -218,14 +222,13 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
 
   // 4. Analysis operations (detection, change) based on target
   let analysisId: string | null = null;
-  const targetLower = query.target.toLowerCase();
   const opLower = query.operation.toLowerCase();
   const isVegetationChange = opLower === "vegetation_change_detection" || (query.changeType && query.changeType.includes("vegetation"));
-  const isChange = opLower.includes("change") || targetLower.includes("new") || targetLower.includes("loss") || targetLower.includes("expansion") || targetLower.includes("deforestation");
+  const isChange = opLower.includes("change") || targetLowerStr.includes("new") || targetLowerStr.includes("loss") || targetLowerStr.includes("expansion") || targetLowerStr.includes("deforestation");
   
   const detectionIds: string[] = [];
 
-  if (targetLower.includes("buildings") || targetLower.includes("hospitals") || targetLower.includes("urban") || targetLower.includes("car") || targetLower.includes("ship") || targetLower.includes("plane") || targetLower.includes("vehicle") || targetLower.includes("infrastructure") || targetLower.includes("object")) {
+  if (targetLowerStr.includes("building") || targetLowerStr.includes("hospital") || targetLowerStr.includes("urban") || targetLowerStr.includes("car") || targetLowerStr.includes("ship") || targetLowerStr.includes("plane") || targetLowerStr.includes("vehicle") || targetLowerStr.includes("infrastructure") || targetLowerStr.includes("object")) {
     if (isChange && imageryIds.length === 4) { // Start read, Start preproc, End read, End preproc
       const detectStartId = `step_${currentOrder++}_detect_objects_start`;
       const depsStart = [targetDatasetId, imageryIds[0], imageryIds[1]];
@@ -276,7 +279,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       analysisId = detectId;
       detectionIds.push(detectId);
     }
-  } else if   (targetLower.includes("vegetation") || targetLower.includes("agricultural") || targetLower.includes("forest") || targetLower.includes("deforestation") || targetLower.includes("ndvi")) {
+  } else if   (targetLowerStr.includes("vegetation") || targetLowerStr.includes("agricultural") || targetLowerStr.includes("forest") || targetLowerStr.includes("deforestation") || targetLowerStr.includes("ndvi")) {
     if (query.timeRange?.start && imageryIds.length > 0) {
         const readId = imageryIds[0];
         const analyzeId = `step_${currentOrder++}_analyze_raster_pixels`;
