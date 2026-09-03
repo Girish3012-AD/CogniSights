@@ -19,6 +19,7 @@ beforeEach(() => {
 describe("fetchWithRetry resilience", () => {
   it("1. Returns response on first attempt success", async () => {
     const mockFetch = vi.fn().mockResolvedValueOnce(mockResponse(200));
+    global.fetch = mockFetch as any;
     const res = await fetchWithRetry("https://example.com", {}, { maxRetries: 3, providerName: "test" });
     expect(res.ok).toBe(true);
   });
