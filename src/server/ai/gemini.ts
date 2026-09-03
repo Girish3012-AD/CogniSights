@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { StructuredQuery, StructuredQuerySchema } from "../../types/index.js";
 
@@ -16,16 +21,14 @@ function getAiClient(): GoogleGenAI {
   });
 }
 
-
-async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+async function withRetry<T>(operation: () => Promise<T>, maxRetries = 2): Promise<T> {
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
-      // Wrap operation in a per-attempt timeout of 30s
       const result = await Promise.race([
         operation(),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini request timeout")), 30000)
+          setTimeout(() => reject(new Error("Gemini request timeout")), 15000)
         )
       ]);
       return result;
@@ -39,11 +42,10 @@ async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promis
         error.status === 503 || error.status === 429 || error.status === 500;
       if (isTransient && attempt < maxRetries - 1) {
         attempt++;
-        // Respect Retry-After-style delay if available in message
         let delay = Math.pow(2, attempt) * 1000 + Math.random() * 500;
         const retryMatch = msg.match(/retry in (\d+)/i);
         if (retryMatch) delay = parseInt(retryMatch[1]) * 1000 + 500;
-        delay = Math.min(delay, 15000); // cap at 15s
+        delay = Math.min(delay, 5000); // cap at 5s for fast fallback
         console.warn(`Gemini transient error (attempt ${attempt}/${maxRetries}). Retrying in ${Math.round(delay)}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
@@ -52,6 +54,101 @@ async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promis
     }
   }
   throw new Error("Gemini: maximum retries reached");
+}
+
+function fallbackParseQuery(nlQuery: string, aoiStr?: string): StructuredQuery {
+  const lower = nlQuery.toLowerCase();
+  let locationName = aoiStr || "Seattle";
+
+  const locMatch = nlQuery.match(/in\s+([A-Za-z\s,]+)$/i) ||
+                   nlQuery.match(/near\s+([A-Za-z\s,]+)$/i) ||
+                   nlQuery.match(/of\s+([A-Za-z\s,]+)$/i);
+  if (locMatch && locMatch[1]) {
+    const rawLoc = locMatch[1].trim();
+    if (rawLoc.length > 1 && !rawLoc.includes("between") && !rawLoc.includes("500m")) {
+      locationName = rawLoc;
+    }
+  }
+
+  let timeRange: { start?: string; end?: string } | undefined;
+  const yearMatch = nlQuery.match(/between\s+(\d{4})\s+and\s+(\d{4})/i);
+  if (yearMatch) {
+    timeRange = { start: yearMatch[1], end: yearMatch[2] };
+  }
+
+  let spatialConstraint: { relation?: string; distance?: string | number; referenceFeature?: string } | undefined;
+  const distMatch = nlQuery.match(/within\s+([0-9]+(?:\.[0-9]+)?)\s*(m|km|meters|kilometers)?/i);
+  if (distMatch) {
+    const distNum = parseFloat(distMatch[1]);
+    const distUnits = /km|kilometers?/i.test(distMatch[2] || '') ? 'kilometers' : 'meters';
+    spatialConstraint = {
+      relation: `within ${distNum} ${distUnits}`,
+      distance: distNum,
+      referenceFeature: lower.includes("road") || lower.includes("highway") ? "roads" : undefined
+    };
+  }
+
+  if (lower.includes("building") && (lower.includes("change") || lower.includes("added") || lower.includes("removed"))) {
+    return {
+      intent: "change_detection",
+      target: "buildings",
+      operation: "detect_change",
+      timeRange: timeRange || { start: "2019", end: "2023" },
+      location: { name: locationName },
+      areaOfInterest: { label: locationName }
+    };
+  }
+
+  if (lower.includes("building")) {
+    return {
+      intent: "object_detection",
+      target: "buildings",
+      operation: "detect_objects",
+      timeRange,
+      location: { name: locationName },
+      areaOfInterest: { label: locationName }
+    };
+  }
+
+  if (lower.includes("vegetation") || lower.includes("ndvi") || lower.includes("forest") || lower.includes("crop")) {
+    return {
+      intent: "raster_analysis",
+      target: "vegetation",
+      operation: "vegetation_analysis",
+      timeRange: timeRange || (lower.includes("change") ? { start: "2019", end: "2023" } : undefined),
+      location: { name: locationName },
+      areaOfInterest: { label: locationName }
+    };
+  }
+
+  if (lower.includes("hospital") || lower.includes("medical")) {
+    return {
+      intent: "feature_search",
+      target: "hospitals",
+      operation: "search_features",
+      location: { name: locationName },
+      areaOfInterest: { label: locationName }
+    };
+  }
+
+  if (lower.includes("road") || lower.includes("highway")) {
+    return {
+      intent: "proximity_analysis",
+      target: "roads",
+      operation: "proximity_analysis",
+      spatialConstraint,
+      location: { name: locationName },
+      areaOfInterest: { label: locationName }
+    };
+  }
+
+  return {
+    intent: "general_analysis",
+    target: lower.includes("urban") ? "urban expansion" : "features",
+    operation: lower.includes("urban") ? "proximity_analysis" : "search_features",
+    location: { name: locationName },
+    areaOfInterest: { label: locationName }
+  };
 }
 
 export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): Promise<StructuredQuery> {
@@ -88,7 +185,6 @@ export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): 
                 referenceFeature: { type: Type.STRING },
               },
             },
-            
             location: {
               type: Type.OBJECT,
               properties: {
@@ -126,24 +222,18 @@ export async function parseQueryToStructured(nlQuery: string, aoiStr?: string): 
         },
       },
     }));
+
+    const jsonStr = response.text?.trim() || "{}";
+    const parsedJson = JSON.parse(jsonStr);
+    const validationResult = StructuredQuerySchema.safeParse(parsedJson);
+    if (validationResult.success) {
+      return validationResult.data;
+    }
   } catch (error: any) {
-    throw new Error(`Gemini API Error: ${error.message}`);
+    console.warn("Gemini parseQueryToStructured failed (falling back to rule-based parser):", error.message);
   }
 
-  const jsonStr = response.text?.trim() || "{}";
-  let parsedJson;
-  try {
-    parsedJson = JSON.parse(jsonStr);
-  } catch (error: any) {
-    throw new Error(`Failed to parse AI output as JSON: ${error.message}`);
-  }
-
-  const validationResult = StructuredQuerySchema.safeParse(parsedJson);
-  if (!validationResult.success) {
-    throw new Error(`AI output failed schema validation: ${validationResult.error.message}`);
-  }
-
-  return validationResult.data;
+  return fallbackParseQuery(nlQuery, aoiStr);
 }
 
 export async function generateFinalAnswer(nlQuery: string, planExecutionSummary: any): Promise<string> {

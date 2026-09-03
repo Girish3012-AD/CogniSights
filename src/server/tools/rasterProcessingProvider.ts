@@ -40,12 +40,45 @@ export async function processRasterWindow(input: any): Promise<ToolResult<Raster
       };
     }
 
-    // Pick the first asset for now
-    const asset = rasterAssets[0];
+    // Pick and load candidate raster asset with fallback re-signing
+    let tiff: any = null;
+    let image: any = null;
+    let asset: RasterAsset = rasterAssets[0];
 
-    // Read GeoTIFF
-    const tiff = await fromUrl(asset.href);
-    const image = await tiff.getImage();
+    for (const candidateAsset of rasterAssets) {
+      try {
+        tiff = await fromUrl(candidateAsset.href, { headers: { "User-Agent": "SATQuery-Agent/1.0" } });
+        image = await tiff.getImage();
+        asset = candidateAsset;
+        break;
+      } catch (e1: any) {
+        try {
+          const rawUrl = candidateAsset.href.split('?')[0];
+          const signUrl = `https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(rawUrl)}`;
+          const signRes = await fetch(signUrl);
+          if (signRes.ok) {
+            const signData = await signRes.json() as any;
+            if (signData?.href) {
+              tiff = await fromUrl(signData.href, { headers: { "User-Agent": "SATQuery-Agent/1.0" } });
+              image = await tiff.getImage();
+              asset = { ...candidateAsset, href: signData.href };
+              break;
+            }
+          }
+        } catch (e2: any) {
+          // Continue to next candidate
+        }
+      }
+    }
+
+    if (!tiff || !image) {
+      return {
+        toolName: "processRasterWindow",
+        status: "FAILED",
+        message: "Unable to read GeoTIFF raster assets from STAC provider.",
+        evidence: []
+      };
+    }
     
     // Read Metadata
     const width = image.getWidth();

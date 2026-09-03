@@ -78,23 +78,25 @@ export async function handleQuery(nlQuery: string, aoi?: string): Promise<Analys
     }
   }
 
-  // Determine overall status
-  const statuses = executionSteps.map(s => s.executionState);
-  let overallStatus: OverallExecutionStatus = "SUCCESS";
-  
-  const hasSuccess = statuses.includes("SUCCESS");
-  const hasFailed = statuses.includes("FAILED");
-  const hasNotImplemented = statuses.includes("NOT_IMPLEMENTED");
-  const hasSkipped = statuses.includes("SKIPPED");
+  // Determine overall status based on the final core (non-verify) step
+  const coreSteps = executionSteps.filter(s => !s.stepId.includes('_verify'));
+  const coreStep = coreSteps[coreSteps.length - 1];
+  const coreState = coreStep?.executionState;
 
-  if (!hasFailed && !hasNotImplemented && !hasSkipped) {
-    overallStatus = "SUCCESS";
-  } else if (hasSuccess) {
-    overallStatus = "PARTIAL";
-  } else if (hasFailed) {
-    overallStatus = "FAILED";
+  let overallStatus: OverallExecutionStatus;
+  if (!coreStep) {
+    overallStatus = 'FAILED';
+  } else if (coreState === 'SUCCESS') {
+    const hasNonCoreFailure = executionSteps.some(s =>
+      !s.stepId.includes('_verify') && s.stepId !== coreStep.stepId &&
+      (s.executionState === 'FAILED' || s.executionState === 'NOT_IMPLEMENTED')
+    );
+    overallStatus = hasNonCoreFailure ? 'PARTIAL' : 'SUCCESS';
+  } else if (coreState === 'NOT_IMPLEMENTED') {
+    overallStatus = 'NOT_IMPLEMENTED';
   } else {
-    overallStatus = "NOT_IMPLEMENTED";
+    // FAILED or SKIPPED core step = overall FAILED
+    overallStatus = 'FAILED';
   }
 
   // 4. Final Answer

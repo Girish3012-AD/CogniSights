@@ -188,7 +188,9 @@ export async function geospatialFeatureProvider(input: any): Promise<ToolResult<
     return {
       toolName: "searchGeospatialFeatures",
       status: "SUCCESS",
-      message: `Successfully retrieved ${features.length} features.`,
+      message: features.length > 0
+        ? `Successfully retrieved ${features.length} ${featureType} features.`
+        : `No ${featureType} features found in the specified area. Please try expanding the search area or checking if the feature type is correct for this location.`,
       data: validation.data,
       evidence
     };

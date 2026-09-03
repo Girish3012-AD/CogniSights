@@ -1,7 +1,38 @@
 import { StructuredQuery, QueryPlanStep, QueryPlanSchema, QueryPlan } from "../../types/index.js";
 
+/**
+ * Normalize a StructuredQuery to ensure location information is always in a
+ * canonical form regardless of which field Gemini chose to populate.
+ */
+function normalizeQuery(q: StructuredQuery): StructuredQuery {
+  const normalized = { ...q };
+
+  // If no areaOfInterest.label but location.name exists, copy it
+  if (!normalized.areaOfInterest?.label && normalized.location?.name) {
+    normalized.areaOfInterest = { ...(normalized.areaOfInterest || {}), label: normalized.location.name };
+  }
+
+  // If spatialConstraint has a non-standard .location field (Gemini variant), promote it
+  const sc = normalized.spatialConstraint as any;
+  if (sc?.location && !normalized.location?.name) {
+    normalized.location = { name: sc.location };
+    if (!normalized.areaOfInterest?.label) {
+      normalized.areaOfInterest = { label: sc.location };
+    }
+  }
+
+  // If still no location.name, derive from areaOfInterest.label
+  if (!normalized.location?.name && normalized.areaOfInterest?.label) {
+    normalized.location = { ...(normalized.location || {}), name: normalized.areaOfInterest.label };
+  }
+
+  return normalized;
+}
+
+
 export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
   const steps: QueryPlanStep[] = [];
+  query = normalizeQuery(query);
   let currentOrder = 1;
 
   
@@ -118,7 +149,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       toolName: "spatialBuffer",
       operation: "buffer",
       description: `Create a ${query.spatialConstraint.distance} ${query.spatialConstraint.relation} buffer.`,
-      input: { distance: query.spatialConstraint.distance, units: bufferUnits, relation: query.spatialConstraint.relation },
+      input: { distance: (() => { const rd = query.spatialConstraint?.distance; const n = typeof rd === 'number' ? rd : parseFloat(String(rd ?? '')); return isNaN(n) ? rd : n; })(), units: bufferUnits, relation: query.spatialConstraint?.relation },
       dependsOn: bufferDep ? [bufferDep] : [],
       status: "PENDING"
     });
@@ -280,7 +311,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
       detectionIds.push(detectId);
     }
   } else if   (targetLowerStr.includes("vegetation") || targetLowerStr.includes("agricultural") || targetLowerStr.includes("forest") || targetLowerStr.includes("deforestation") || targetLowerStr.includes("ndvi")) {
-    if (query.timeRange?.start && imageryIds.length > 0) {
+    if (imageryIds.length > 0) {
         const readId = imageryIds[0];
         const analyzeId = `step_${currentOrder++}_analyze_raster_pixels`;
         steps.push({
@@ -299,7 +330,7 @@ export function createQueryPlan(query: StructuredQuery): QueryPlanStep[] {
         steps.push({
            id: ndviId,
            order: currentOrder - 1,
-           toolName: "analyzeRasterFeatures",
+           toolName: "calculateNDVI",
            operation: "analyze_raster_features",
            description: "Calculate deterministic raster features from pixels",
            input: {},

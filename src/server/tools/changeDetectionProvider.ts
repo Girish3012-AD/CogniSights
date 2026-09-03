@@ -45,7 +45,8 @@ export async function detectChangeProvider(input: any): Promise<ToolResult<Chang
       return {
         toolName: "detectChange",
         status: "FAILED",
-        message: "Missing valid building detections for T1 or T2."
+        message: "Missing valid building detections for T1 or T2.",
+        evidence: []
       };
     }
 
@@ -134,7 +135,8 @@ export async function detectChangeProvider(input: any): Promise<ToolResult<Chang
     return {
       toolName: "detectChange",
       status: "FAILED",
-      message: `Change detection error: ${error.message}`
+      message: `Change detection error: ${error.message}`,
+      evidence: []
     };
   }
 }

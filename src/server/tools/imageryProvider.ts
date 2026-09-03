@@ -146,15 +146,21 @@ export async function getSatelliteImageryProvider(input: any): Promise<ToolResul
     const rasterResult = await processRasterAssets(features);
     const evidence = [...evidenceItems, ...rasterResult.evidence];
     
-    // Determine the exact status and messaging based on Raster milestone requirements
-    let status: 'SUCCESS' | 'FAILED' | 'NOT_IMPLEMENTED' | 'PENDING' | 'AMBIGUOUS' = 'SUCCESS';
-    let message = `Discovered ${mappedMetadata.length} STAC metadata item(s). `;
-
-    if (rasterResult.assets.length > 0) {
-       message += `Successfully validated access to ${rasterResult.assets.length} raster asset(s).`;
-    } else {
-       message += `No valid, accessible raster assets found. (${rasterResult.errors.join("; ")})`;
+    // If STAC items were found but no accessible raster assets, report NOT_IMPLEMENTED
+    // so downstream raster steps are correctly SKIPPED instead of receiving an empty list.
+    if (rasterResult.assets.length === 0) {
+      return {
+        toolName: "getSatelliteImagery",
+        status: "NOT_IMPLEMENTED",
+        message: `Discovered ${mappedMetadata.length} STAC item(s) but no valid accessible raster assets could be validated. Downstream raster analysis is not possible. (${rasterResult.errors.join("; ")})`,
+        data: { imageryItems: mappedMetadata, imageryAssets: [], rasterMetadata: [] },
+        evidence
+      };
     }
+    
+    // Determine the exact status and messaging based on Raster milestone requirements
+    const status: 'SUCCESS' | 'FAILED' | 'NOT_IMPLEMENTED' | 'PENDING' | 'AMBIGUOUS' = 'SUCCESS';
+    const message = `Discovered ${mappedMetadata.length} STAC metadata item(s). Successfully validated access to ${rasterResult.assets.length} raster asset(s).`;
 
     return {
       toolName: "getSatelliteImagery",
