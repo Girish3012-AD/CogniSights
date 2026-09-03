@@ -1,73 +1,145 @@
-import { Search, Sparkles } from "lucide-react";
+import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
 
 interface QueryInputProps {
-  aoiValue?: string;
-  onAoiChange?: (val: string) => void;
-  value: string;
-  onChange: (val: string) => void;
-  onSubmit: () => void;
+  onSubmitQuery: (formData: FormData) => void;
   isLoading: boolean;
 }
 
-const EXAMPLES = [
-  { label: "New Buildings", text: "Find new buildings within 2 km of major roads between 2020 and 2026." },
-  { label: "Vegetation Loss", text: "Find agricultural areas with vegetation loss greater than 30% between 2019 and 2026." },
-  { label: "Urban Expansion", text: "Find areas of urban expansion near major highways." },
-  { label: "Deforestation", text: "Find deforestation within 5 km of protected areas." }
-];
+export const QueryInput: React.FC<QueryInputProps> = ({ onSubmitQuery, isLoading }) => {
+  const [nlQuery, setNlQuery] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-export function QueryInput({ value, onChange, aoiValue, onAoiChange, onSubmit, isLoading }: QueryInputProps) {
+  // Intercept drag actions safely over visual window layout bounds
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processIncomingFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processIncomingFiles(Array.from(e.target.files));
+    }
+  };
+
+  const processIncomingFiles = (files: File[]) => {
+    // Filter array to strictly bound uploads within ISRO framework constraints
+    const validExtensions = ['.tif', '.tiff', '.png', '.jpg', '.jpeg'];
+    const filtered = files.filter(file => {
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      return validExtensions.includes(ext);
+    });
+
+    // Enforce max structural limits (up to 2 files for bi-temporal/cross-modal processing)
+    setSelectedFiles(prev => [...prev, ...filtered].slice(0, 2));
+  };
+
+  const removeFileFromBatch = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const executeSubmission = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nlQuery.trim()) return;
+
+    // Convert standard JSON context payload execution into binary multi-part form tensors
+    const dataTunnel = new FormData();
+    dataTunnel.append('nlQuery', nlQuery);
+    
+    // Append the user's localized Area of Interest bounding constraints if globally initialized
+    dataTunnel.append('aoi', JSON.stringify({ source: 'ui_viewport_boundaries' }));
+
+    selectedFiles.forEach((file) => {
+      dataTunnel.append('satellite_images', file);
+    });
+
+    onSubmitQuery(dataTunnel);
+  };
+
   return (
-    <section className="space-y-4">
-      <div>
-        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Analysis Area</label>
-        <input 
-          type="text"
-          value={aoiValue || ''}
-          onChange={(e) => onAoiChange?.(e.target.value)}
-          placeholder="e.g. Pune, India or [minLon, minLat, maxLon, maxLat]"
-          className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-white shadow-sm text-sm outline-none focus:border-blue-500 transition-colors"
-          disabled={isLoading}
-        />
-      </div>
-      <div>
-        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Natural Language Query</label>
-      <div className="relative group">
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter your geospatial question..."
-          className="w-full p-4 pb-14 border border-slate-200 rounded-xl bg-white shadow-sm text-sm leading-relaxed outline-none ring-2 ring-transparent group-focus-within:ring-blue-500/20 group-focus-within:border-blue-500 transition-all resize-none h-32 text-slate-900"
-          disabled={isLoading}
-        />
-        <button
-          onClick={onSubmit}
-          disabled={!value.trim() || isLoading}
-          className="absolute right-4 bottom-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2"
+    <div className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl">
+      <form onSubmit={executeSubmission} className="space-y-4">
+        
+        {/* Dynamic Drag-and-Drop Dropzone Matrix */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            isDragging 
+              ? 'border-emerald-500 bg-slate-800/50' 
+              : 'border-slate-700 hover:border-slate-600 bg-slate-950'
+          }`}
         >
-          {isLoading ? (
-            <>
-              <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <span>Analyzing...</span>
-            </>
-          ) : (
-            <span>Analyze</span>
-          )}
-        </button>
-      </div>
-
-      <div className="mt-3 flex gap-2 flex-wrap">
-        {EXAMPLES.map((ex, i) => (
-          <button
-            key={i}
-            onClick={() => onChange(ex.text)}
-            className="text-[10px] text-slate-500 font-medium py-1 px-2 bg-slate-100 rounded uppercase cursor-pointer hover:bg-slate-200 transition-colors text-left"
-          >
-            {ex.label}
-          </button>
-        ))}
-      </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            multiple
+            accept=".tif,.tiff,.png,.jpg,.jpeg"
+            className="hidden"
+          />
+          <div className="text-slate-400 text-sm">
+            <span className="text-emerald-400 font-medium">Click to upload</span> or drag and drop satellite files
           </div>
-    </section>
+          <p className="text-slate-500 text-xs mt-1">Accepts GeoTIFF (.tif) or standard image templates (Max 2 files)</p>
+        </div>
+
+        {/* Selected Image Metadata Preview Badges */}
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {selectedFiles.map((file, idx) => (
+              <div 
+                key={idx} 
+                className="flex items-center space-x-2 bg-slate-800 border border-slate-700 px-3 py-1 rounded-md text-xs text-slate-300"
+              >
+                <span className="truncate max-w-[180px] font-mono">{file.name}</span>
+                <span className="text-slate-500">({(file.size / (1024 * 1024)).toFixed(1)} MB)</span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeFileFromBatch(idx); }}
+                  className="text-slate-500 hover:text-rose-400 font-bold ml-1 transition-colors"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Core Query String Input Area */}
+        <div className="flex items-center space-x-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2">
+          <input
+            type="text"
+            value={nlQuery}
+            onChange={(e) => setNlQuery(e.target.value)}
+            disabled={isLoading}
+            placeholder="Ask SatQuery AI about the scene (e.g., 'Detect changes between these dates')..."
+            className="w-full bg-transparent focus:outline-none text-slate-100 text-sm placeholder-slate-500"
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !nlQuery.trim()}
+            className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-800 text-slate-950 disabled:text-slate-600 text-xs font-semibold px-4 py-2 rounded transition-colors shadow-lg shadow-emerald-500/10"
+          >
+            {isLoading ? 'Processing...' : 'Run DAG'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
-}
+};

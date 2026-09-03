@@ -3,7 +3,7 @@ import { parseQueryToStructured, generateFinalAnswer } from "../ai/gemini.js";
 import { createQueryPlan } from "../planner/planner.js";
 import { executeTool } from "../tools/registry.js";
 
-export async function handleQuery(nlQuery: string, aoi?: string): Promise<AnalysisResult> {
+export async function handleQuery(nlQuery: string, aoi?: string, localizedContext?: { imagePaths: string[] }): Promise<AnalysisResult> {
   // 1. Query Understanding
   const structuredQuery = await parseQueryToStructured(nlQuery, aoi);
 

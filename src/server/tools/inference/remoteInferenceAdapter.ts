@@ -760,3 +760,47 @@ export class RemoteInferenceAdapter {
     };
   }
 }
+import axios from 'axios';
+import FormData from 'form-data';
+import fs from 'fs';
+
+export interface InferencePayload {
+  task: 'vqa' | 'caption' | 'grounding';
+  imagePaths: string[];
+  prompt?: string;
+}
+
+export async function dispatchToLocalML(payload: InferencePayload) {
+  try {
+    if (!payload.imagePaths || payload.imagePaths.length === 0) {
+      throw new Error("Execution failed: No local GeoTIFF file paths provided in the execution context.");
+    }
+
+    const form = new FormData();
+    form.append('file_path', payload.imagePaths[0]);
+    
+    if (payload.prompt) {
+      form.append('prompt', payload.prompt);
+    }
+
+    let endpoint = 'vqa';
+    if (payload.task === 'caption') endpoint = 'caption';
+    if (payload.task === 'grounding') endpoint = 'grounding';
+
+    const response = await axios.post(`http://127.0.0.1:8000/api/v1/${endpoint}`, form, {
+      headers: form.getHeaders(),
+      timeout: 30000
+    });
+
+    return {
+      success: true,
+      result: response.data
+    };
+
+  } catch (error: any) {
+    return {
+      success: false,
+      error: `Local ML Microservice Error: ${error.response?.data?.detail || error.message}`
+    };
+  }
+}

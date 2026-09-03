@@ -24,15 +24,13 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  const runAnalysis = async (targetQuery: string, targetAoi: string) => {
-    if (!targetQuery.trim()) return;
+  const runAnalysis = async (formData: FormData) => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/query", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nlQuery: targetQuery, aoi: targetAoi })
+        body: formData
       });
       if (!res.ok) {
         let errorMessage = "An error occurred";
@@ -46,6 +44,9 @@ export default function App() {
       }
       const data: AnalysisResult = await res.json();
       setResult(data);
+
+      const targetQuery = formData.get('nlQuery') as string || 'Visual Query';
+      const targetAoi = formData.get('aoi') as string || 'Pune';
 
       const newItem: HistoryItem = {
         id: Date.now().toString(),
@@ -63,8 +64,8 @@ export default function App() {
     }
   };
 
-  const handleAnalyze = () => {
-    runAnalysis(query, aoiQuery);
+  const handleAnalyze = (formData: FormData) => {
+    runAnalysis(formData);
   };
 
   const handleNewQuery = () => {
@@ -86,7 +87,10 @@ export default function App() {
     setQuery(template.query);
     setAoiQuery(template.aoi);
     setActiveTab('explorer');
-    runAnalysis(template.query, template.aoi);
+    const fd = new FormData();
+    fd.append('nlQuery', template.query);
+    fd.append('aoi', template.aoi);
+    runAnalysis(fd);
   };
 
   const getBreadcrumbTitle = () => {
@@ -149,11 +153,7 @@ export default function App() {
           <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-0 p-0 overflow-hidden relative">
             <div className="col-span-1 md:col-span-7 flex flex-col border-r border-slate-200 p-6 space-y-6 overflow-y-auto">
               <QueryInput
-                value={query}
-                onChange={setQuery}
-                aoiValue={aoiQuery}
-                onAoiChange={setAoiQuery}
-                onSubmit={handleAnalyze}
+                onSubmitQuery={handleAnalyze}
                 isLoading={isLoading}
               />
 
